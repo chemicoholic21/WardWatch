@@ -1,0 +1,14 @@
+{
+  "name": "ghostoffice-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test-connection": "node test-elastic-connection.js",
+    "setup-indices": "node setup-indices.js",
+    "seed": "node seed-data.js"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.12.0",
+    "dotenv": "^16.4.5"
+  }
+}
