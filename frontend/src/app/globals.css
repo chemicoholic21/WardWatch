@@ -2,96 +2,576 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --radius: 0.5rem;
-}
+/* ═══════════════════════════════════════════════════════════════
+   GHOSTOFFICE DESIGN SYSTEM
+   A civic observability platform with purpose-driven aesthetics
+   ═══════════════════════════════════════════════════════════════ */
 
 @layer base {
+  :root {
+    /* Core palette - Midnight Observatory */
+    --void: 230 25% 5%;
+    --abyss: 230 20% 8%;
+    --slate: 225 15% 12%;
+    --ash: 220 12% 18%;
+    --smoke: 215 10% 28%;
+    --mist: 210 8% 45%;
+    --cloud: 205 6% 65%;
+    --light: 200 5% 88%;
+    --pure: 0 0% 98%;
+
+    /* Semantic colors - Signal System */
+    --signal-ghost: 270 65% 60%;      /* Purple - Ghost offices */
+    --signal-danger: 0 72% 58%;       /* Red - Critical alerts */
+    --signal-warning: 38 92% 55%;     /* Amber - Warnings */
+    --signal-safe: 152 60% 48%;       /* Emerald - Healthy */
+    --signal-info: 205 85% 55%;       /* Sky - Information */
+    --signal-scam: 350 80% 55%;       /* Rose - Scam detection */
+
+    /* Accent gradients */
+    --gradient-ghost: linear-gradient(135deg, hsl(270 65% 60%) 0%, hsl(300 60% 50%) 100%);
+    --gradient-danger: linear-gradient(135deg, hsl(0 72% 58%) 0%, hsl(25 90% 55%) 100%);
+    --gradient-civic: linear-gradient(135deg, hsl(205 85% 55%) 0%, hsl(185 70% 45%) 100%);
+
+    /* Spacing rhythm */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Borders & Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    /* Shadows */
+    --shadow-glow: 0 0 40px -10px;
+    --shadow-float: 0 20px 40px -15px rgba(0,0,0,0.5);
+  }
+
   * {
-    @apply border-border;
+    border-color: hsl(var(--ash));
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background: hsl(var(--void));
+    color: hsl(var(--cloud));
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Custom selection */
+  ::selection {
+    background: hsl(var(--signal-ghost) / 0.3);
+    color: hsl(var(--pure));
   }
 }
 
 @layer components {
-  .ghost-gradient {
-    background: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(280, 87%, 65%) 100%);
+  /* ─────────────────────────────────────────────────────────────
+     SURFACE SYSTEM - Layered depth hierarchy
+     ───────────────────────────────────────────────────────────── */
+
+  .surface-void { background: hsl(var(--void)); }
+  .surface-base { background: hsl(var(--abyss)); }
+  .surface-raised {
+    background: hsl(var(--slate));
+    border: 1px solid hsl(var(--ash));
+  }
+  .surface-overlay {
+    background: hsl(var(--ash));
+    border: 1px solid hsl(var(--smoke) / 0.3);
   }
 
-  .alert-critical {
-    @apply bg-red-500/20 border-red-500 text-red-400;
+  /* ─────────────────────────────────────────────────────────────
+     PANEL - Core container component
+     ───────────────────────────────────────────────────────────── */
+
+  .panel {
+    @apply relative overflow-hidden;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--slate)) 0%,
+      hsl(var(--abyss)) 100%
+    );
+    border: 1px solid hsl(var(--ash));
+    border-radius: var(--radius-lg);
   }
 
-  .alert-high {
-    @apply bg-orange-500/20 border-orange-500 text-orange-400;
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--smoke)) 50%,
+      transparent 100%
+    );
   }
 
-  .alert-medium {
-    @apply bg-yellow-500/20 border-yellow-500 text-yellow-400;
+  .panel-header {
+    @apply flex items-center justify-between px-5 py-4;
+    border-bottom: 1px solid hsl(var(--ash));
   }
 
-  .alert-low {
-    @apply bg-green-500/20 border-green-500 text-green-400;
+  .panel-title {
+    @apply text-sm font-semibold uppercase tracking-wider;
+    color: hsl(var(--light));
   }
 
-  .card-hover {
-    @apply transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10;
+  .panel-body {
+    @apply p-5;
   }
 
-  .stat-card {
-    @apply bg-card rounded-lg border border-border p-4;
+  /* ─────────────────────────────────────────────────────────────
+     METRIC DISPLAY - For key statistics
+     ───────────────────────────────────────────────────────────── */
+
+  .metric {
+    @apply relative;
   }
 
-  .nav-link {
-    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors;
+  .metric-value {
+    @apply text-4xl font-bold tracking-tight;
+    font-family: var(--font-mono);
+    color: hsl(var(--pure));
+    line-height: 1;
   }
 
-  .nav-link.active {
-    @apply bg-primary/10 text-primary border-l-2 border-primary;
+  .metric-label {
+    @apply text-xs uppercase tracking-widest mt-2;
+    color: hsl(var(--mist));
   }
-}
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  .metric-delta {
+    @apply inline-flex items-center gap-1 text-xs font-medium mt-2 px-2 py-0.5 rounded-full;
+  }
 
-::-webkit-scrollbar-track {
-  @apply bg-background;
-}
+  .metric-delta.positive {
+    background: hsl(var(--signal-safe) / 0.15);
+    color: hsl(var(--signal-safe));
+  }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-secondary rounded-full;
-}
+  .metric-delta.negative {
+    background: hsl(var(--signal-danger) / 0.15);
+    color: hsl(var(--signal-danger));
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/50;
-}
+  /* ─────────────────────────────────────────────────────────────
+     GHOST SCORE - Unique visualization for ghost offices
+     ───────────────────────────────────────────────────────────── */
 
-/* Animations */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  .ghost-score {
+    @apply relative flex items-center gap-3;
+  }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
+  .ghost-score-ring {
+    @apply relative w-14 h-14 rounded-full;
+    background: conic-gradient(
+      hsl(var(--signal-ghost)) var(--score-percent, 0%),
+      hsl(var(--ash)) var(--score-percent, 0%)
+    );
+  }
 
-/* Map styles */
-.leaflet-container {
-  @apply bg-card rounded-lg;
-}
+  .ghost-score-ring::before {
+    content: '';
+    @apply absolute inset-1 rounded-full;
+    background: hsl(var(--slate));
+  }
 
-.leaflet-popup-content-wrapper {
-  @apply bg-card text-foreground border border-border;
-}
+  .ghost-score-value {
+    @apply absolute inset-0 flex items-center justify-center text-sm font-bold;
+    font-family: var(--font-mono);
+    color: hsl(var(--signal-ghost));
+  }
 
-.leaflet-popup-tip {
-  @apply bg-card;
+  /* ─────────────────────────────────────────────────────────────
+     STATUS INDICATORS
+     ───────────────────────────────────────────────────────────── */
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-badge.critical {
+    background: hsl(var(--signal-danger) / 0.12);
+    color: hsl(var(--signal-danger));
+    box-shadow: var(--shadow-glow) hsl(var(--signal-danger) / 0.2);
+  }
+
+  .status-badge.high {
+    background: hsl(var(--signal-warning) / 0.12);
+    color: hsl(var(--signal-warning));
+  }
+
+  .status-badge.medium {
+    background: hsl(var(--signal-info) / 0.12);
+    color: hsl(var(--signal-info));
+  }
+
+  .status-badge.low {
+    background: hsl(var(--signal-safe) / 0.12);
+    color: hsl(var(--signal-safe));
+  }
+
+  .status-badge.ghost {
+    background: hsl(var(--signal-ghost) / 0.12);
+    color: hsl(var(--signal-ghost));
+    box-shadow: var(--shadow-glow) hsl(var(--signal-ghost) / 0.15);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     PULSE DOT - Live indicator
+     ───────────────────────────────────────────────────────────── */
+
+  .pulse-dot {
+    @apply relative w-2 h-2 rounded-full;
+    background: hsl(var(--signal-safe));
+  }
+
+  .pulse-dot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: inherit;
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     NAV ITEM - Sidebar navigation
+     ───────────────────────────────────────────────────────────── */
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200;
+    color: hsl(var(--mist));
+  }
+
+  .nav-item:hover {
+    background: hsl(var(--ash) / 0.5);
+    color: hsl(var(--light));
+  }
+
+  .nav-item.active {
+    background: hsl(var(--signal-ghost) / 0.1);
+    color: hsl(var(--signal-ghost));
+    border-left: 2px solid hsl(var(--signal-ghost));
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     INPUT FIELD
+     ───────────────────────────────────────────────────────────── */
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-lg text-sm transition-all duration-200;
+    background: hsl(var(--abyss));
+    border: 1px solid hsl(var(--ash));
+    color: hsl(var(--light));
+  }
+
+  .input-field::placeholder {
+    color: hsl(var(--smoke));
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: hsl(var(--signal-ghost) / 0.5);
+    box-shadow: 0 0 0 3px hsl(var(--signal-ghost) / 0.1);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     BUTTON SYSTEM
+     ───────────────────────────────────────────────────────────── */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200;
+  }
+
+  .btn-primary {
+    background: var(--gradient-ghost);
+    color: hsl(var(--pure));
+    box-shadow: var(--shadow-glow) hsl(var(--signal-ghost) / 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow) hsl(var(--signal-ghost) / 0.5);
+  }
+
+  .btn-secondary {
+    background: hsl(var(--ash));
+    color: hsl(var(--light));
+    border: 1px solid hsl(var(--smoke) / 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: hsl(var(--smoke) / 0.3);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: hsl(var(--mist));
+  }
+
+  .btn-ghost:hover {
+    background: hsl(var(--ash) / 0.5);
+    color: hsl(var(--light));
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     TABLE - Data display
+     ───────────────────────────────────────────────────────────── */
+
+  .data-table {
+    @apply w-full;
+  }
+
+  .data-table th {
+    @apply text-left text-xs font-medium uppercase tracking-wider px-4 py-3;
+    color: hsl(var(--smoke));
+    background: hsl(var(--abyss));
+  }
+
+  .data-table td {
+    @apply px-4 py-4;
+    border-bottom: 1px solid hsl(var(--ash) / 0.5);
+  }
+
+  .data-table tr:hover td {
+    background: hsl(var(--ash) / 0.3);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     PROGRESS BAR
+     ───────────────────────────────────────────────────────────── */
+
+  .progress-bar {
+    @apply relative h-1.5 rounded-full overflow-hidden;
+    background: hsl(var(--ash));
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  .progress-bar-fill.danger { background: hsl(var(--signal-danger)); }
+  .progress-bar-fill.warning { background: hsl(var(--signal-warning)); }
+  .progress-bar-fill.safe { background: hsl(var(--signal-safe)); }
+  .progress-bar-fill.ghost { background: hsl(var(--signal-ghost)); }
+
+  /* ─────────────────────────────────────────────────────────────
+     ZONE CARD - For civic health zones
+     ───────────────────────────────────────────────────────────── */
+
+  .zone-card {
+    @apply relative p-4 rounded-xl cursor-pointer transition-all duration-200;
+    background: hsl(var(--slate));
+    border: 1px solid hsl(var(--ash));
+  }
+
+  .zone-card:hover {
+    border-color: hsl(var(--smoke));
+    transform: translateY(-2px);
+  }
+
+  .zone-card.selected {
+    border-color: hsl(var(--signal-ghost));
+    box-shadow: 0 0 20px -5px hsl(var(--signal-ghost) / 0.2);
+  }
+
+  .zone-grade {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold;
+    font-family: var(--font-mono);
+  }
+
+  .zone-grade.A { background: hsl(var(--signal-safe) / 0.15); color: hsl(var(--signal-safe)); }
+  .zone-grade.B { background: hsl(var(--signal-info) / 0.15); color: hsl(var(--signal-info)); }
+  .zone-grade.C { background: hsl(var(--signal-warning) / 0.15); color: hsl(var(--signal-warning)); }
+  .zone-grade.D { background: hsl(152 30% 40% / 0.15); color: hsl(35 80% 55%); }
+  .zone-grade.F { background: hsl(var(--signal-danger) / 0.15); color: hsl(var(--signal-danger)); }
+
+  /* ─────────────────────────────────────────────────────────────
+     SCAM CARD - TrustLens alerts
+     ───────────────────────────────────────────────────────────── */
+
+  .scam-card {
+    @apply relative p-4 rounded-xl;
+    background: hsl(var(--slate));
+    border: 1px solid hsl(var(--ash));
+    border-left: 3px solid hsl(var(--signal-scam));
+  }
+
+  .scam-card.correlated {
+    border-left-color: hsl(var(--signal-warning));
+    background: linear-gradient(
+      90deg,
+      hsl(var(--signal-warning) / 0.05) 0%,
+      transparent 30%
+    );
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     AGENT CARD - OpenClaw agents
+     ───────────────────────────────────────────────────────────── */
+
+  .agent-card {
+    @apply relative p-5 rounded-xl overflow-hidden;
+    background: hsl(var(--slate));
+    border: 1px solid hsl(var(--ash));
+  }
+
+  .agent-card.running {
+    border-color: hsl(var(--signal-safe) / 0.5);
+  }
+
+  .agent-card.running::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-0.5;
+    background: hsl(var(--signal-safe));
+    animation: scan-line 2s ease-in-out infinite;
+  }
+
+  @keyframes scan-line {
+    0%, 100% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+  }
+
+  .agent-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     SKELETON LOADING
+     ───────────────────────────────────────────────────────────── */
+
+  .skeleton {
+    @apply relative overflow-hidden rounded;
+    background: hsl(var(--ash));
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--smoke) / 0.1) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     SCROLLBAR
+     ───────────────────────────────────────────────────────────── */
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--abyss));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--smoke) / 0.5);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--smoke));
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     UTILITY ANIMATIONS
+     ───────────────────────────────────────────────────────────── */
+
+  .fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     TYPOGRAPHY UTILITIES
+     ───────────────────────────────────────────────────────────── */
+
+  .text-gradient {
+    background: var(--gradient-ghost);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  .text-void { color: hsl(var(--void)); }
+  .text-mist { color: hsl(var(--mist)); }
+  .text-smoke { color: hsl(var(--smoke)); }
+  .text-cloud { color: hsl(var(--cloud)); }
+  .text-light { color: hsl(var(--light)); }
+  .text-pure { color: hsl(var(--pure)); }
+
+  .text-ghost { color: hsl(var(--signal-ghost)); }
+  .text-danger { color: hsl(var(--signal-danger)); }
+  .text-warning { color: hsl(var(--signal-warning)); }
+  .text-safe { color: hsl(var(--signal-safe)); }
+  .text-info { color: hsl(var(--signal-info)); }
+
+  /* ─────────────────────────────────────────────────────────────
+     BACKGROUND EFFECTS
+     ───────────────────────────────────────────────────────────── */
+
+  .bg-noise {
+    position: relative;
+  }
+
+  .bg-noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+  }
 }
