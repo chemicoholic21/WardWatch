@@ -1,0 +1,136 @@
+{
+  "description": "Enrich documents with geographic data based on ward information",
+  "processors": [
+    {
+      "script": {
+        "description": "Map ward_id to zone if not present",
+        "lang": "painless",
+        "source": """
+          if (ctx.zone == null && ctx.ward_id != null) {
+            // Ward to zone mapping (simplified - in production, use enrich policy)
+            def wardZones = [
+              'W001': 'South', 'W002': 'South', 'W003': 'South', 'W004': 'South', 'W005': 'South',
+              'W006': 'South', 'W007': 'South', 'W008': 'South', 'W009': 'South', 'W010': 'South',
+              'W011': 'West', 'W012': 'West', 'W013': 'West', 'W014': 'West', 'W015': 'West',
+              'W016': 'West', 'W017': 'West', 'W018': 'West', 'W019': 'West', 'W020': 'West',
+              'W021': 'East', 'W022': 'East', 'W023': 'East', 'W024': 'East', 'W025': 'East',
+              'W026': 'East', 'W027': 'East', 'W028': 'East', 'W029': 'East', 'W030': 'East',
+              'W031': 'North', 'W032': 'North', 'W033': 'North', 'W034': 'North', 'W035': 'North',
+              'W036': 'North', 'W037': 'North', 'W038': 'North', 'W039': 'North', 'W040': 'North',
+              'W041': 'Mahadevapura', 'W042': 'Mahadevapura', 'W043': 'Mahadevapura', 'W044': 'Mahadevapura',
+              'W045': 'Mahadevapura', 'W046': 'Mahadevapura', 'W047': 'Mahadevapura', 'W048': 'Mahadevapura',
+              'W049': 'Bommanahalli', 'W050': 'Bommanahalli', 'W051': 'Bommanahalli', 'W052': 'Bommanahalli',
+              'W053': 'Bommanahalli', 'W054': 'Bommanahalli', 'W055': 'Bommanahalli', 'W056': 'Bommanahalli',
+              'W057': 'Yelahanka', 'W058': 'Yelahanka', 'W059': 'Yelahanka', 'W060': 'Yelahanka',
+              'W061': 'Yelahanka', 'W062': 'Yelahanka', 'W063': 'Yelahanka', 'W064': 'Yelahanka',
+              'W065': 'Dasarahalli', 'W066': 'Dasarahalli', 'W067': 'Dasarahalli', 'W068': 'Dasarahalli',
+              'W069': 'RR_Nagar', 'W070': 'RR_Nagar', 'W071': 'RR_Nagar', 'W072': 'RR_Nagar'
+            ];
+
+            if (wardZones.containsKey(ctx.ward_id)) {
+              ctx.zone = wardZones[ctx.ward_id];
+            } else {
+              // Default zone assignment based on ward number range
+              def wardNum = Integer.parseInt(ctx.ward_id.substring(1));
+              if (wardNum <= 30) ctx.zone = 'South';
+              else if (wardNum <= 60) ctx.zone = 'East';
+              else if (wardNum <= 90) ctx.zone = 'West';
+              else if (wardNum <= 120) ctx.zone = 'North';
+              else if (wardNum <= 150) ctx.zone = 'Mahadevapura';
+              else if (wardNum <= 175) ctx.zone = 'Bommanahalli';
+              else ctx.zone = 'Yelahanka';
+            }
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Extract ward number from ward_id",
+        "lang": "painless",
+        "source": """
+          if (ctx.ward_number == null && ctx.ward_id != null) {
+            try {
+              ctx.ward_number = Integer.parseInt(ctx.ward_id.substring(1));
+            } catch (Exception e) {
+              ctx.ward_number = 0;
+            }
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Validate and normalize geo_location",
+        "lang": "painless",
+        "source": """
+          if (ctx.geo_location != null) {
+            def lat = ctx.geo_location.lat;
+            def lon = ctx.geo_location.lon;
+
+            // Validate Bengaluru bounds (approximately)
+            if (lat < 12.7 || lat > 13.2 || lon < 77.4 || lon > 77.8) {
+              // Outside Bengaluru - use ward centroid instead
+              ctx.geo_location_original = ctx.geo_location;
+              ctx.geo_location = null;
+            }
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Assign default geo_location based on ward if missing",
+        "lang": "painless",
+        "source": """
+          if (ctx.geo_location == null && ctx.ward_id != null) {
+            // Default centroids for each zone (simplified)
+            def zoneCentroids = [
+              'South': ['lat': 12.9352, 'lon': 77.5831],
+              'West': ['lat': 12.9569, 'lon': 77.5073],
+              'East': ['lat': 12.9850, 'lon': 77.6408],
+              'North': ['lat': 13.0358, 'lon': 77.5970],
+              'Mahadevapura': ['lat': 12.9927, 'lon': 77.7013],
+              'Bommanahalli': ['lat': 12.8970, 'lon': 77.6175],
+              'Yelahanka': ['lat': 13.1005, 'lon': 77.5940],
+              'Dasarahalli': ['lat': 13.0465, 'lon': 77.5130],
+              'RR_Nagar': ['lat': 12.9379, 'lon': 77.5168]
+            ];
+
+            if (ctx.zone != null && zoneCentroids.containsKey(ctx.zone)) {
+              def centroid = zoneCentroids[ctx.zone];
+              // Add small random offset for visual distribution
+              def random = new Random();
+              ctx.geo_location = [
+                'lat': centroid['lat'] + (random.nextDouble() - 0.5) * 0.02,
+                'lon': centroid['lon'] + (random.nextDouble() - 0.5) * 0.02
+              ];
+            }
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Extract pincode from address if present",
+        "lang": "painless",
+        "source": """
+          if (ctx.pincode == null && ctx.address != null) {
+            def matcher = /\\b(56\\d{4})\\b/.matcher(ctx.address);
+            if (matcher.find()) {
+              ctx.pincode = matcher.group(1);
+            }
+          }
+        """
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "geo_enrichment_error",
+        "value": "{{_ingest.on_failure_message}}"
+      }
+    }
+  ]
+}

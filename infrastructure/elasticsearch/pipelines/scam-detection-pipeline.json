@@ -1,0 +1,315 @@
+{
+  "description": "Analyze and score scam reports with multi-factor risk assessment",
+  "processors": [
+    {
+      "set": {
+        "field": "analyzed_at",
+        "value": "{{_ingest.timestamp}}"
+      }
+    },
+    {
+      "script": {
+        "description": "Extract and analyze domain from URL",
+        "lang": "painless",
+        "source": """
+          ctx.link_safety_score = 100.0;
+          ctx.is_https = false;
+
+          if (ctx.url != null && ctx.url != '') {
+            String url = ctx.url.toLowerCase();
+
+            // Check HTTPS
+            ctx.is_https = url.startsWith('https://');
+
+            // Extract domain
+            def matcher = /https?:\\/\\/([^\\/\\?]+)/.matcher(url);
+            if (matcher.find()) {
+              ctx.domain = matcher.group(1);
+              String domain = ctx.domain;
+
+              double safety = 100.0;
+
+              // Government domains are trustworthy
+              if (domain.endsWith('.gov.in') || domain.endsWith('.nic.in')) {
+                safety = 100.0;
+              } else {
+                // Non-government domain penalty
+                safety -= 30;
+
+                // URL shorteners are risky
+                if (domain.contains('bit.ly') || domain.contains('tinyurl') ||
+                    domain.contains('goo.gl') || domain.contains('t.co') ||
+                    domain.contains('short') || domain.contains('tiny')) {
+                  safety -= 35;
+                }
+
+                // Many numbers in domain is suspicious
+                def numMatcher = /\\d{4,}/.matcher(domain);
+                if (numMatcher.find()) {
+                  safety -= 20;
+                }
+
+                // Very short domains are suspicious
+                if (domain.length() < 6) {
+                  safety -= 15;
+                }
+
+                // Impersonating government domains
+                if (domain.contains('bescom') || domain.contains('bbmp') ||
+                    domain.contains('bwssb') || domain.contains('karnataka') ||
+                    domain.contains('bangalore') || domain.contains('bengaluru')) {
+                  if (!domain.endsWith('.gov.in') && !domain.endsWith('.co.in') && !domain.endsWith('.org.in')) {
+                    safety -= 40;
+                    ctx.spoofed_department = domain.contains('bescom') ? 'BESCOM' :
+                                             domain.contains('bbmp') ? 'BBMP' :
+                                             domain.contains('bwssb') ? 'BWSSB' : 'UNKNOWN';
+                  }
+                }
+
+                // HTTP instead of HTTPS
+                if (!ctx.is_https) {
+                  safety -= 10;
+                }
+              }
+
+              ctx.link_safety_score = Math.max(safety, 0);
+            }
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate urgency language score",
+        "lang": "painless",
+        "source": """
+          ctx.urgency_language_score = 0.0;
+
+          if (ctx.content != null && ctx.content != '') {
+            String content = ctx.content.toLowerCase();
+            double score = 0.0;
+
+            // High urgency phrases
+            def highUrgency = ['immediate action', 'immediately', 'urgent', 'urgently',
+                               'last chance', 'final notice', 'final warning',
+                               'within 24 hours', 'within 2 hours', 'today only',
+                               'act now', 'act immediately', 'dont delay', 'don\\'t delay'];
+            for (phrase in highUrgency) {
+              if (content.contains(phrase)) {
+                score += 15;
+              }
+            }
+
+            // Threat phrases
+            def threats = ['suspended', 'terminated', 'blocked', 'disconnected',
+                          'legal action', 'police', 'court', 'arrest', 'penalty',
+                          'fine', 'seizure', 'blacklisted'];
+            for (phrase in threats) {
+              if (content.contains(phrase)) {
+                score += 12;
+              }
+            }
+
+            // Pressure phrases
+            def pressure = ['verify now', 'update now', 'confirm now', 'click here',
+                           'limited time', 'expir', 'deadline'];
+            for (phrase in pressure) {
+              if (content.contains(phrase)) {
+                score += 10;
+              }
+            }
+
+            ctx.urgency_language_score = Math.min(score, 100);
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate financial risk score",
+        "lang": "painless",
+        "source": """
+          ctx.financial_risk_score = 0.0;
+
+          if (ctx.content != null && ctx.content != '') {
+            String content = ctx.content.toLowerCase();
+            double score = 0.0;
+
+            // Direct payment requests
+            def paymentPhrases = ['pay now', 'pay immediately', 'pay rs', 'pay ₹',
+                                  'transfer money', 'send payment', 'make payment',
+                                  'pay amount', 'payment due', 'amount due'];
+            for (phrase in paymentPhrases) {
+              if (content.contains(phrase)) {
+                score += 20;
+              }
+            }
+
+            // Banking/credential requests
+            def credentialPhrases = ['bank account', 'account number', 'upi', 'gpay',
+                                     'phonepe', 'paytm', 'otp', 'password', 'pin',
+                                     'cvv', 'card number', 'atm pin', 'internet banking'];
+            for (phrase in credentialPhrases) {
+              if (content.contains(phrase)) {
+                score += 25;
+              }
+            }
+
+            // Money mentions
+            def moneyMatcher = /(?:rs\\.?|₹|inr)\\s*[\\d,]+/.matcher(content);
+            if (moneyMatcher.find()) {
+              score += 15;
+            }
+
+            ctx.financial_risk_score = Math.min(score, 100);
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate impersonation score",
+        "lang": "painless",
+        "source": """
+          ctx.impersonation_score = 0.0;
+
+          if (ctx.content != null && ctx.content != '') {
+            String content = ctx.content.toLowerCase();
+            double score = 0.0;
+
+            // Government department mentions
+            def departments = ['bescom', 'bbmp', 'bwssb', 'rera', 'bda', 'bmtc',
+                              'karnataka government', 'govt of karnataka',
+                              'electricity department', 'water department',
+                              'municipal corporation', 'income tax'];
+            for (dept in departments) {
+              if (content.contains(dept)) {
+                score += 15;
+                if (ctx.spoofed_department == null) {
+                  if (dept.contains('bescom') || dept.contains('electric')) {
+                    ctx.spoofed_department = 'BESCOM';
+                  } else if (dept.contains('bbmp') || dept.contains('municipal')) {
+                    ctx.spoofed_department = 'BBMP';
+                  } else if (dept.contains('bwssb') || dept.contains('water')) {
+                    ctx.spoofed_department = 'BWSSB';
+                  }
+                }
+              }
+            }
+
+            // Official-sounding phrases
+            def officialPhrases = ['official notice', 'government notice', 'department notice',
+                                  'as per records', 'your connection', 'your account',
+                                  'customer id', 'consumer number', 'service number'];
+            for (phrase in officialPhrases) {
+              if (content.contains(phrase)) {
+                score += 10;
+              }
+            }
+
+            // But NOT from official domain
+            if (ctx.link_safety_score != null && ctx.link_safety_score < 70 && score > 0) {
+              score += 20;
+            }
+
+            ctx.impersonation_score = Math.min(score, 100);
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate overall scam probability and trust score",
+        "lang": "painless",
+        "source": """
+          double linkWeight = 0.35;
+          double urgencyWeight = 0.25;
+          double financialWeight = 0.25;
+          double impersonationWeight = 0.15;
+
+          double linkRisk = ctx.link_safety_score != null ? (100 - ctx.link_safety_score) : 50;
+          double urgencyRisk = ctx.urgency_language_score != null ? ctx.urgency_language_score : 0;
+          double financialRisk = ctx.financial_risk_score != null ? ctx.financial_risk_score : 0;
+          double impersonationRisk = ctx.impersonation_score != null ? ctx.impersonation_score : 0;
+
+          double totalRisk = (linkRisk * linkWeight) +
+                            (urgencyRisk * urgencyWeight) +
+                            (financialRisk * financialWeight) +
+                            (impersonationRisk * impersonationWeight);
+
+          ctx.scam_probability = Math.min(totalRisk / 100.0, 1.0);
+          ctx.trust_score = Math.max(100 - totalRisk, 0);
+
+          if (ctx.scam_probability > 0.8) {
+            ctx.risk_level = 'critical';
+          } else if (ctx.scam_probability > 0.6) {
+            ctx.risk_level = 'high';
+          } else if (ctx.scam_probability > 0.4) {
+            ctx.risk_level = 'medium';
+          } else {
+            ctx.risk_level = 'low';
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Determine scam type/category",
+        "lang": "painless",
+        "source": """
+          if (ctx.scam_type == null && ctx.content != null) {
+            String content = ctx.content.toLowerCase();
+
+            if (content.contains('bill') && (content.contains('overdue') || content.contains('due'))) {
+              ctx.scam_type = 'FAKE_BILL';
+              ctx.scam_category = 'FINANCIAL_FRAUD';
+            } else if (content.contains('kyc') || content.contains('verify')) {
+              ctx.scam_type = 'KYC_PHISHING';
+              ctx.scam_category = 'IDENTITY_THEFT';
+            } else if (content.contains('lottery') || content.contains('prize') || content.contains('winner')) {
+              ctx.scam_type = 'LOTTERY_SCAM';
+              ctx.scam_category = 'ADVANCE_FEE_FRAUD';
+            } else if (content.contains('otp') || content.contains('password')) {
+              ctx.scam_type = 'CREDENTIAL_THEFT';
+              ctx.scam_category = 'IDENTITY_THEFT';
+            } else if (content.contains('disconnect') || content.contains('suspend')) {
+              ctx.scam_type = 'SERVICE_THREAT';
+              ctx.scam_category = 'INTIMIDATION_FRAUD';
+            } else {
+              ctx.scam_type = 'GENERIC_PHISHING';
+              ctx.scam_category = 'PHISHING';
+            }
+          }
+        """
+      }
+    },
+    {
+      "set": {
+        "field": "verified_status",
+        "value": "pending",
+        "if": "ctx.verified_status == null"
+      }
+    },
+    {
+      "set": {
+        "field": "victim_reports",
+        "value": 0,
+        "if": "ctx.victim_reports == null"
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "_index",
+        "value": "scam-reports-failed"
+      }
+    },
+    {
+      "set": {
+        "field": "error.message",
+        "value": "{{_ingest.on_failure_message}}"
+      }
+    }
+  ]
+}

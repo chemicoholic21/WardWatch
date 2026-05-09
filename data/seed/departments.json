@@ -1,0 +1,169 @@
+{
+  "departments": [
+    {
+      "code": "BBMP",
+      "name": "Bruhat Bengaluru Mahanagara Palike",
+      "full_name": "Bruhat Bengaluru Mahanagara Palike (Greater Bangalore City Corporation)",
+      "type": "municipal",
+      "website": "https://bbmp.gov.in",
+      "helpline": "1533",
+      "email": "commissioner@bbmp.gov.in",
+      "issues": [
+        {"type": "road_damage", "name": "Road Damage / Potholes", "sla_days": 7, "priority": "high"},
+        {"type": "garbage", "name": "Garbage Collection", "sla_days": 2, "priority": "high"},
+        {"type": "drainage", "name": "Drainage / Sewage Overflow", "sla_days": 5, "priority": "high"},
+        {"type": "streetlight", "name": "Street Light Not Working", "sla_days": 3, "priority": "medium"},
+        {"type": "building_violation", "name": "Building Violation", "sla_days": 14, "priority": "medium"},
+        {"type": "encroachment", "name": "Encroachment", "sla_days": 14, "priority": "medium"},
+        {"type": "stormwater_drain", "name": "Stormwater Drain Block", "sla_days": 3, "priority": "high"},
+        {"type": "footpath", "name": "Footpath Damage", "sla_days": 10, "priority": "low"},
+        {"type": "public_toilet", "name": "Public Toilet Maintenance", "sla_days": 2, "priority": "medium"},
+        {"type": "park_maintenance", "name": "Park Maintenance", "sla_days": 7, "priority": "low"},
+        {"type": "tree_fall", "name": "Tree Fall / Dangerous Trees", "sla_days": 1, "priority": "critical"},
+        {"type": "property_tax", "name": "Property Tax Issues", "sla_days": 14, "priority": "low"},
+        {"type": "trade_license", "name": "Trade License", "sla_days": 21, "priority": "low"},
+        {"type": "birth_death_cert", "name": "Birth/Death Certificate", "sla_days": 7, "priority": "medium"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Ward Engineer", "email": "ward-engineer@bbmp.gov.in"},
+        {"level": 2, "authority": "Assistant Executive Engineer", "email": "aee@bbmp.gov.in"},
+        {"level": 3, "authority": "Executive Engineer", "email": "ee@bbmp.gov.in"},
+        {"level": 4, "authority": "Zonal Commissioner", "email": "zonal-commissioner@bbmp.gov.in"},
+        {"level": 5, "authority": "BBMP Commissioner", "email": "commissioner@bbmp.gov.in"},
+        {"level": 6, "authority": "Mayor Office", "email": "mayor@bbmp.gov.in"},
+        {"level": 7, "authority": "Karnataka Lokayukta", "email": "lokayukta@karnataka.gov.in"}
+      ]
+    },
+    {
+      "code": "BESCOM",
+      "name": "Bangalore Electricity Supply Company",
+      "full_name": "Bangalore Electricity Supply Company Limited",
+      "type": "utility",
+      "website": "https://bescom.co.in",
+      "helpline": "1912",
+      "email": "md@bescom.co.in",
+      "issues": [
+        {"type": "power_outage", "name": "Power Outage", "sla_days": 1, "priority": "critical"},
+        {"type": "voltage_fluctuation", "name": "Voltage Fluctuation", "sla_days": 3, "priority": "high"},
+        {"type": "billing_dispute", "name": "Billing Dispute", "sla_days": 14, "priority": "medium"},
+        {"type": "meter_issue", "name": "Meter Malfunction", "sla_days": 5, "priority": "high"},
+        {"type": "new_connection", "name": "New Connection Delay", "sla_days": 21, "priority": "medium"},
+        {"type": "transformer_failure", "name": "Transformer Failure", "sla_days": 2, "priority": "critical"},
+        {"type": "cable_damage", "name": "Cable Damage / Exposed Wires", "sla_days": 1, "priority": "critical"},
+        {"type": "streetlight_electricity", "name": "Street Light Electricity Issue", "sla_days": 3, "priority": "medium"},
+        {"type": "pole_damage", "name": "Electric Pole Damage", "sla_days": 2, "priority": "high"},
+        {"type": "load_shedding", "name": "Unscheduled Load Shedding", "sla_days": 1, "priority": "high"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Section Officer", "email": "local@bescom.co.in"},
+        {"level": 2, "authority": "Assistant Executive Engineer", "email": "aee@bescom.co.in"},
+        {"level": 3, "authority": "Executive Engineer", "email": "ee@bescom.co.in"},
+        {"level": 4, "authority": "Superintendent Engineer", "email": "se@bescom.co.in"},
+        {"level": 5, "authority": "Chief Engineer", "email": "ce@bescom.co.in"},
+        {"level": 6, "authority": "Managing Director", "email": "md@bescom.co.in"},
+        {"level": 7, "authority": "KERC (Karnataka Electricity Regulatory Commission)", "email": "kerc@karnataka.gov.in"}
+      ]
+    },
+    {
+      "code": "BWSSB",
+      "name": "Bangalore Water Supply and Sewerage Board",
+      "full_name": "Bangalore Water Supply and Sewerage Board",
+      "type": "utility",
+      "website": "https://bwssb.gov.in",
+      "helpline": "1916",
+      "email": "chairman@bwssb.gov.in",
+      "issues": [
+        {"type": "no_water", "name": "No Water Supply", "sla_days": 1, "priority": "critical"},
+        {"type": "low_pressure", "name": "Low Water Pressure", "sla_days": 3, "priority": "high"},
+        {"type": "water_quality", "name": "Water Quality / Contamination", "sla_days": 1, "priority": "critical"},
+        {"type": "pipeline_leak", "name": "Pipeline Leakage", "sla_days": 2, "priority": "high"},
+        {"type": "sewage_overflow", "name": "Sewage Overflow", "sla_days": 1, "priority": "critical"},
+        {"type": "billing_water", "name": "Water Billing Dispute", "sla_days": 14, "priority": "medium"},
+        {"type": "meter_water", "name": "Water Meter Issue", "sla_days": 5, "priority": "medium"},
+        {"type": "new_connection_water", "name": "New Water Connection", "sla_days": 30, "priority": "low"},
+        {"type": "borewell", "name": "Borewell Permission", "sla_days": 30, "priority": "low"},
+        {"type": "underground_drainage", "name": "Underground Drainage Block", "sla_days": 2, "priority": "high"},
+        {"type": "tanker_request", "name": "Water Tanker Request", "sla_days": 1, "priority": "high"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Junior Engineer", "email": "je@bwssb.gov.in"},
+        {"level": 2, "authority": "Assistant Engineer", "email": "ae@bwssb.gov.in"},
+        {"level": 3, "authority": "Executive Engineer", "email": "ee@bwssb.gov.in"},
+        {"level": 4, "authority": "Superintendent Engineer", "email": "se@bwssb.gov.in"},
+        {"level": 5, "authority": "Chief Engineer", "email": "ce@bwssb.gov.in"},
+        {"level": 6, "authority": "BWSSB Chairman", "email": "chairman@bwssb.gov.in"}
+      ]
+    },
+    {
+      "code": "BDA",
+      "name": "Bangalore Development Authority",
+      "full_name": "Bangalore Development Authority",
+      "type": "development",
+      "website": "https://bdabangalore.org",
+      "helpline": "080-22213141",
+      "email": "commissioner@bdabangalore.org",
+      "issues": [
+        {"type": "site_allotment", "name": "Site Allotment Delay", "sla_days": 60, "priority": "medium"},
+        {"type": "layout_approval", "name": "Layout Approval", "sla_days": 45, "priority": "medium"},
+        {"type": "conversion", "name": "Land Conversion", "sla_days": 60, "priority": "low"},
+        {"type": "encroachment_bda", "name": "BDA Land Encroachment", "sla_days": 30, "priority": "high"},
+        {"type": "khata_transfer", "name": "Khata Transfer", "sla_days": 30, "priority": "medium"},
+        {"type": "ca_site", "name": "Civic Amenity Site Issue", "sla_days": 30, "priority": "medium"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Assistant Director", "email": "ad@bdabangalore.org"},
+        {"level": 2, "authority": "Deputy Director", "email": "dd@bdabangalore.org"},
+        {"level": 3, "authority": "Joint Director", "email": "jd@bdabangalore.org"},
+        {"level": 4, "authority": "Additional Director", "email": "addl@bdabangalore.org"},
+        {"level": 5, "authority": "Commissioner", "email": "commissioner@bdabangalore.org"}
+      ]
+    },
+    {
+      "code": "RERA",
+      "name": "Real Estate Regulatory Authority",
+      "full_name": "Karnataka Real Estate Regulatory Authority",
+      "type": "regulatory",
+      "website": "https://rera.karnataka.gov.in",
+      "helpline": "080-22251636",
+      "email": "secretary@rera.karnataka.gov.in",
+      "issues": [
+        {"type": "project_delay", "name": "Project Completion Delay", "sla_days": 60, "priority": "high"},
+        {"type": "builder_fraud", "name": "Builder Fraud / Misrepresentation", "sla_days": 30, "priority": "high"},
+        {"type": "refund", "name": "Refund from Builder", "sla_days": 45, "priority": "high"},
+        {"type": "quality_defect", "name": "Construction Quality Defects", "sla_days": 30, "priority": "medium"},
+        {"type": "possession_delay", "name": "Possession Delay", "sla_days": 60, "priority": "high"},
+        {"type": "agreement_violation", "name": "Agreement Violation", "sla_days": 30, "priority": "medium"},
+        {"type": "non_registration", "name": "Project Not Registered", "sla_days": 14, "priority": "critical"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Deputy Secretary", "email": "ds@rera.karnataka.gov.in"},
+        {"level": 2, "authority": "Secretary", "email": "secretary@rera.karnataka.gov.in"},
+        {"level": 3, "authority": "Member (Technical)", "email": "member-tech@rera.karnataka.gov.in"},
+        {"level": 4, "authority": "Chairman", "email": "chairman@rera.karnataka.gov.in"}
+      ]
+    },
+    {
+      "code": "BMTC",
+      "name": "Bangalore Metropolitan Transport Corporation",
+      "full_name": "Bangalore Metropolitan Transport Corporation",
+      "type": "transport",
+      "website": "https://mybmtc.karnataka.gov.in",
+      "helpline": "1800-425-1663",
+      "email": "md@bmtc.karnataka.gov.in",
+      "issues": [
+        {"type": "bus_delay", "name": "Bus Route Delay / Frequency", "sla_days": 7, "priority": "medium"},
+        {"type": "driver_behavior", "name": "Driver Misconduct", "sla_days": 3, "priority": "high"},
+        {"type": "bus_condition", "name": "Bus Condition / Cleanliness", "sla_days": 5, "priority": "medium"},
+        {"type": "route_change", "name": "Route Change Request", "sla_days": 30, "priority": "low"},
+        {"type": "pass_issue", "name": "Bus Pass Issues", "sla_days": 7, "priority": "medium"},
+        {"type": "bus_stop", "name": "Bus Stop Infrastructure", "sla_days": 14, "priority": "low"}
+      ],
+      "escalation_path": [
+        {"level": 1, "authority": "Depot Manager", "email": "depot@bmtc.karnataka.gov.in"},
+        {"level": 2, "authority": "Divisional Controller", "email": "dc@bmtc.karnataka.gov.in"},
+        {"level": 3, "authority": "Chief Traffic Manager", "email": "ctm@bmtc.karnataka.gov.in"},
+        {"level": 4, "authority": "Managing Director", "email": "md@bmtc.karnataka.gov.in"}
+      ]
+    }
+  ]
+}

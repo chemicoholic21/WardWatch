@@ -1,0 +1,174 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "metric_id": {
+        "type": "keyword"
+      },
+      "ward_id": {
+        "type": "keyword"
+      },
+      "ward_name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "ward_number": {
+        "type": "integer"
+      },
+      "zone": {
+        "type": "keyword"
+      },
+      "assembly_constituency": {
+        "type": "keyword"
+      },
+      "geo_boundary": {
+        "type": "geo_shape"
+      },
+      "centroid": {
+        "type": "geo_point"
+      },
+      "population": {
+        "type": "integer"
+      },
+      "area_sqkm": {
+        "type": "float"
+      },
+      "population_density": {
+        "type": "float"
+      },
+      "period": {
+        "type": "keyword"
+      },
+      "period_start": {
+        "type": "date"
+      },
+      "period_end": {
+        "type": "date"
+      },
+      "calculated_at": {
+        "type": "date"
+      },
+      "metrics": {
+        "type": "object",
+        "properties": {
+          "total_complaints": { "type": "integer" },
+          "open_complaints": { "type": "integer" },
+          "pending_complaints": { "type": "integer" },
+          "resolved_complaints": { "type": "integer" },
+          "closed_complaints": { "type": "integer" },
+          "rejected_complaints": { "type": "integer" },
+          "overdue_complaints": { "type": "integer" },
+          "new_complaints_7d": { "type": "integer" },
+          "resolved_complaints_7d": { "type": "integer" },
+          "avg_resolution_days": { "type": "float" },
+          "median_resolution_days": { "type": "float" },
+          "p95_resolution_days": { "type": "float" },
+          "escalation_rate": { "type": "float" },
+          "transfer_rate": { "type": "float" },
+          "ghost_office_count": { "type": "integer" },
+          "total_scam_reports": { "type": "integer" },
+          "verified_scams": { "type": "integer" },
+          "scam_victims": { "type": "integer" },
+          "outage_hours": { "type": "float" },
+          "outage_count": { "type": "integer" },
+          "avg_outage_duration_hours": { "type": "float" },
+          "complaints_per_1000_population": { "type": "float" }
+        }
+      },
+      "scores": {
+        "type": "object",
+        "properties": {
+          "civic_health_score": { "type": "float" },
+          "responsiveness_index": { "type": "float" },
+          "transparency_index": { "type": "float" },
+          "safety_index": { "type": "float" },
+          "fraud_risk_score": { "type": "float" },
+          "infrastructure_score": { "type": "float" },
+          "citizen_satisfaction_score": { "type": "float" },
+          "overall_score": { "type": "float" }
+        }
+      },
+      "department_breakdown": {
+        "type": "nested",
+        "properties": {
+          "department": { "type": "keyword" },
+          "department_name": { "type": "text" },
+          "complaints": { "type": "integer" },
+          "open": { "type": "integer" },
+          "resolved": { "type": "integer" },
+          "resolution_rate": { "type": "float" },
+          "avg_days": { "type": "float" },
+          "ghost_score": { "type": "float" }
+        }
+      },
+      "issue_breakdown": {
+        "type": "nested",
+        "properties": {
+          "issue_type": { "type": "keyword" },
+          "issue_name": { "type": "text" },
+          "count": { "type": "integer" },
+          "percentage": { "type": "float" },
+          "avg_resolution_days": { "type": "float" },
+          "trend": { "type": "keyword" }
+        }
+      },
+      "scam_breakdown": {
+        "type": "nested",
+        "properties": {
+          "scam_type": { "type": "keyword" },
+          "count": { "type": "integer" },
+          "avg_risk_score": { "type": "float" }
+        }
+      },
+      "trend": {
+        "type": "keyword"
+      },
+      "trend_details": {
+        "type": "object",
+        "properties": {
+          "complaints_trend": { "type": "keyword" },
+          "resolution_trend": { "type": "keyword" },
+          "scam_trend": { "type": "keyword" },
+          "health_trend": { "type": "keyword" }
+        }
+      },
+      "anomaly_detected": {
+        "type": "boolean"
+      },
+      "anomaly_types": {
+        "type": "keyword"
+      },
+      "anomalies": {
+        "type": "nested",
+        "properties": {
+          "anomaly_id": { "type": "keyword" },
+          "type": { "type": "keyword" },
+          "severity": { "type": "keyword" },
+          "description": { "type": "text" },
+          "detected_at": { "type": "date" },
+          "value": { "type": "float" },
+          "expected_value": { "type": "float" },
+          "deviation": { "type": "float" }
+        }
+      },
+      "alert_count": {
+        "type": "integer"
+      },
+      "active_alerts": {
+        "type": "keyword"
+      },
+      "rank": {
+        "type": "integer"
+      },
+      "rank_change_7d": {
+        "type": "integer"
+      }
+    }
+  }
+}

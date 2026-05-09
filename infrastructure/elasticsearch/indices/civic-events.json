@@ -1,0 +1,221 @@
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "civic_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "stop", "snowball"]
+        },
+        "bengaluru_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    },
+    "index": {
+      "refresh_interval": "5s"
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "event_id": {
+        "type": "keyword"
+      },
+      "event_type": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "department": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "department_code": {
+        "type": "keyword"
+      },
+      "department_name": {
+        "type": "text",
+        "analyzer": "bengaluru_analyzer"
+      },
+      "ward_id": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "ward_name": {
+        "type": "text",
+        "analyzer": "bengaluru_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "ward_number": {
+        "type": "integer"
+      },
+      "zone": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "issue_type": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "issue_category": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "civic_analyzer",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "civic_analyzer"
+      },
+      "status": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "priority": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "severity": {
+        "type": "integer"
+      },
+      "created_at": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "updated_at": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "resolved_at": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "expected_resolution_date": {
+        "type": "date",
+        "format": "strict_date_optional_time||epoch_millis"
+      },
+      "days_open": {
+        "type": "integer"
+      },
+      "is_overdue": {
+        "type": "boolean"
+      },
+      "geo_location": {
+        "type": "geo_point"
+      },
+      "address": {
+        "type": "text",
+        "analyzer": "bengaluru_analyzer"
+      },
+      "landmark": {
+        "type": "text"
+      },
+      "pincode": {
+        "type": "keyword"
+      },
+      "citizen_id": {
+        "type": "keyword"
+      },
+      "citizen_name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "citizen_type": {
+        "type": "keyword"
+      },
+      "citizen_phone": {
+        "type": "keyword",
+        "index": false
+      },
+      "risk_score": {
+        "type": "float"
+      },
+      "ghost_contribution_score": {
+        "type": "float"
+      },
+      "escalation_count": {
+        "type": "integer"
+      },
+      "transfer_count": {
+        "type": "integer"
+      },
+      "escalation_path": {
+        "type": "nested",
+        "properties": {
+          "step_id": { "type": "keyword" },
+          "department": { "type": "keyword" },
+          "ward_id": { "type": "keyword" },
+          "timestamp": { "type": "date" },
+          "action": { "type": "keyword" },
+          "action_by": { "type": "keyword" },
+          "officer_id": { "type": "keyword" },
+          "officer_name": { "type": "text" },
+          "notes": { "type": "text" },
+          "duration_hours": { "type": "float" },
+          "status": { "type": "keyword" }
+        }
+      },
+      "related_outage_ids": {
+        "type": "keyword"
+      },
+      "related_complaint_ids": {
+        "type": "keyword"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "sentiment_score": {
+        "type": "float"
+      },
+      "urgency_score": {
+        "type": "float"
+      },
+      "is_suspicious_closure": {
+        "type": "boolean"
+      },
+      "closure_quality_score": {
+        "type": "float"
+      },
+      "resolution_notes": {
+        "type": "text"
+      },
+      "source": {
+        "type": "keyword"
+      },
+      "source_reference": {
+        "type": "keyword"
+      },
+      "attachments": {
+        "type": "nested",
+        "properties": {
+          "file_id": { "type": "keyword" },
+          "file_name": { "type": "keyword" },
+          "file_type": { "type": "keyword" },
+          "s3_url": { "type": "keyword", "index": false },
+          "uploaded_at": { "type": "date" }
+        }
+      },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 1536,
+        "index": true,
+        "similarity": "cosine"
+      },
+      "ingested_at": {
+        "type": "date"
+      }
+    }
+  }
+}

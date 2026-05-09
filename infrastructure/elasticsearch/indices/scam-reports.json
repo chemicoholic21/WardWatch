@@ -1,0 +1,184 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1,
+    "analysis": {
+      "analyzer": {
+        "scam_content_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "stop"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "report_id": {
+        "type": "keyword"
+      },
+      "report_type": {
+        "type": "keyword"
+      },
+      "source_type": {
+        "type": "keyword"
+      },
+      "content": {
+        "type": "text",
+        "analyzer": "scam_content_analyzer"
+      },
+      "raw_content": {
+        "type": "keyword",
+        "index": false,
+        "doc_values": false
+      },
+      "url": {
+        "type": "keyword"
+      },
+      "domain": {
+        "type": "keyword"
+      },
+      "domain_age_days": {
+        "type": "integer"
+      },
+      "is_https": {
+        "type": "boolean"
+      },
+      "sender_id": {
+        "type": "keyword"
+      },
+      "sender_type": {
+        "type": "keyword"
+      },
+      "reported_at": {
+        "type": "date"
+      },
+      "analyzed_at": {
+        "type": "date"
+      },
+      "geo_location": {
+        "type": "geo_point"
+      },
+      "ward_id": {
+        "type": "keyword"
+      },
+      "ward_name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "zone": {
+        "type": "keyword"
+      },
+      "trust_score": {
+        "type": "float"
+      },
+      "scam_probability": {
+        "type": "float"
+      },
+      "risk_level": {
+        "type": "keyword"
+      },
+      "scam_type": {
+        "type": "keyword"
+      },
+      "scam_category": {
+        "type": "keyword"
+      },
+      "spoofed_department": {
+        "type": "keyword"
+      },
+      "risk_indicators": {
+        "type": "nested",
+        "properties": {
+          "indicator_id": { "type": "keyword" },
+          "indicator": { "type": "keyword" },
+          "category": { "type": "keyword" },
+          "severity": { "type": "keyword" },
+          "weight": { "type": "float" },
+          "score": { "type": "float" },
+          "description": { "type": "text" },
+          "matched_pattern": { "type": "keyword" },
+          "evidence": { "type": "text" }
+        }
+      },
+      "urgency_language_score": {
+        "type": "float"
+      },
+      "financial_risk_score": {
+        "type": "float"
+      },
+      "impersonation_score": {
+        "type": "float"
+      },
+      "link_safety_score": {
+        "type": "float"
+      },
+      "grammar_score": {
+        "type": "float"
+      },
+      "related_outage_id": {
+        "type": "keyword"
+      },
+      "is_outage_correlated": {
+        "type": "boolean"
+      },
+      "outage_correlation_score": {
+        "type": "float"
+      },
+      "outage_time_diff_hours": {
+        "type": "float"
+      },
+      "action_taken": {
+        "type": "keyword"
+      },
+      "verified_status": {
+        "type": "keyword"
+      },
+      "verified_by": {
+        "type": "keyword"
+      },
+      "verified_at": {
+        "type": "date"
+      },
+      "victim_reports": {
+        "type": "integer"
+      },
+      "estimated_loss_inr": {
+        "type": "float"
+      },
+      "similar_report_count": {
+        "type": "integer"
+      },
+      "similar_report_ids": {
+        "type": "keyword"
+      },
+      "reporter_id": {
+        "type": "keyword"
+      },
+      "reporter_type": {
+        "type": "keyword"
+      },
+      "ai_analysis": {
+        "type": "object",
+        "properties": {
+          "summary": { "type": "text" },
+          "recommendation": { "type": "text" },
+          "confidence": { "type": "float" },
+          "model_version": { "type": "keyword" }
+        }
+      },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 1536,
+        "index": true,
+        "similarity": "cosine"
+      },
+      "tags": {
+        "type": "keyword"
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .ghost-gradient {
+    background: linear-gradient(135deg, hsl(217, 91%, 60%) 0%, hsl(280, 87%, 65%) 100%);
+  }
+
+  .alert-critical {
+    @apply bg-red-500/20 border-red-500 text-red-400;
+  }
+
+  .alert-high {
+    @apply bg-orange-500/20 border-orange-500 text-orange-400;
+  }
+
+  .alert-medium {
+    @apply bg-yellow-500/20 border-yellow-500 text-yellow-400;
+  }
+
+  .alert-low {
+    @apply bg-green-500/20 border-green-500 text-green-400;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10;
+  }
+
+  .stat-card {
+    @apply bg-card rounded-lg border border-border p-4;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors;
+  }
+
+  .nav-link.active {
+    @apply bg-primary/10 text-primary border-l-2 border-primary;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-secondary rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary/50;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Map styles */
+.leaflet-container {
+  @apply bg-card rounded-lg;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-card text-foreground border border-border;
+}
+
+.leaflet-popup-tip {
+  @apply bg-card;
+}

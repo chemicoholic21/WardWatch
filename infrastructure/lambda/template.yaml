@@ -1,0 +1,317 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: GhostOffice - Civic Observability Lambda Functions
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+
+  ESCloudId:
+    Type: String
+    Description: Elasticsearch Cloud ID
+    NoEcho: true
+
+  ESApiKey:
+    Type: String
+    Description: Elasticsearch API Key
+    NoEcho: true
+
+  CivicAlertsTopic:
+    Type: String
+    Description: SNS Topic ARN for civic alerts
+    Default: ''
+
+  SecurityAlertsTopic:
+    Type: String
+    Description: SNS Topic ARN for security alerts
+    Default: ''
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 300
+    MemorySize: 512
+    Environment:
+      Variables:
+        NODE_ENV: !Ref Environment
+        ES_CLOUD_ID: !Ref ESCloudId
+        ES_API_KEY: !Ref ESApiKey
+        SNS_CIVIC_ALERTS_TOPIC: !Ref CivicAlertsTopic
+        SNS_SECURITY_ALERTS_TOPIC: !Ref SecurityAlertsTopic
+
+Resources:
+  # S3 Bucket for civic data uploads
+  CivicDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ghostoffice-civic-data-${Environment}
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: complaints/
+            Function: !GetAtt CivicEventProcessorFunction.Arn
+
+  # Civic Event Processor Lambda
+  CivicEventProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ghostoffice-civic-event-processor-${Environment}
+      CodeUri: functions/civic-event-processor/
+      Handler: index.handler
+      Description: Processes civic events from S3 and enriches them
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref CivicDataBucket
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref CivicAlertsTopic
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - es:ESHttpPost
+                - es:ESHttpPut
+                - es:ESHttpGet
+              Resource: '*'
+      Events:
+        ScheduledProcessing:
+          Type: Schedule
+          Properties:
+            Schedule: rate(15 minutes)
+            Description: Scheduled processing of overdue complaints
+
+  CivicEventProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/ghostoffice-civic-event-processor-${Environment}
+      RetentionInDays: 14
+
+  # Ghost Office Calculator Lambda
+  GhostOfficeCalculatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ghostoffice-ghost-calculator-${Environment}
+      CodeUri: functions/ghost-office-calculator/
+      Handler: index.handler
+      Description: Calculates ghost office scores on schedule
+      MemorySize: 1024
+      Timeout: 600
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref CivicAlertsTopic
+        - CloudWatchPutMetricPolicy: {}
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - es:ESHttpPost
+                - es:ESHttpPut
+                - es:ESHttpGet
+              Resource: '*'
+      Events:
+        HourlyCalculation:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+            Description: Hourly ghost office score calculation
+
+  GhostOfficeCalculatorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/ghostoffice-ghost-calculator-${Environment}
+      RetentionInDays: 14
+
+  # Scam Alert Trigger Lambda
+  ScamAlertTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ghostoffice-scam-alert-trigger-${Environment}
+      CodeUri: functions/scam-alert-trigger/
+      Handler: index.handler
+      Description: Monitors for scam spikes during outages
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref SecurityAlertsTopic
+        - CloudWatchPutMetricPolicy: {}
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - es:ESHttpPost
+                - es:ESHttpPut
+                - es:ESHttpGet
+              Resource: '*'
+      Events:
+        FrequentCheck:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Description: Frequent scam correlation checks
+
+  ScamAlertTriggerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/ghostoffice-scam-alert-trigger-${Environment}
+      RetentionInDays: 14
+
+  # Bedrock Analyzer Lambda
+  BedrockAnalyzerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ghostoffice-bedrock-analyzer-${Environment}
+      CodeUri: functions/bedrock-analyzer/
+      Handler: index.handler
+      Description: AI-powered analysis using AWS Bedrock
+      MemorySize: 1024
+      Timeout: 120
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
+          BEDROCK_EMBEDDING_MODEL: amazon.titan-embed-text-v1
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+            - Effect: Allow
+              Action:
+                - es:ESHttpPost
+                - es:ESHttpPut
+                - es:ESHttpGet
+              Resource: '*'
+      Events:
+        ApiEndpoint:
+          Type: Api
+          Properties:
+            Path: /analyze
+            Method: POST
+            RestApiId: !Ref GhostOfficeApi
+
+  BedrockAnalyzerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/ghostoffice-bedrock-analyzer-${Environment}
+      RetentionInDays: 14
+
+  # API Gateway
+  GhostOfficeApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ghostoffice-api-${Environment}
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'POST, GET, OPTIONS'"
+        AllowHeaders: "'Content-Type, Authorization'"
+        AllowOrigin: "'*'"
+
+  # SNS Topics
+  CivicAlertsTopicResource:
+    Type: AWS::SNS::Topic
+    Condition: CreateSNSTopics
+    Properties:
+      TopicName: !Sub ghostoffice-civic-alerts-${Environment}
+      DisplayName: GhostOffice Civic Alerts
+
+  SecurityAlertsTopicResource:
+    Type: AWS::SNS::Topic
+    Condition: CreateSNSTopics
+    Properties:
+      TopicName: !Sub ghostoffice-security-alerts-${Environment}
+      DisplayName: GhostOffice Security Alerts
+
+  # CloudWatch Dashboard
+  GhostOfficeDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub GhostOffice-${Environment}
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["GhostOffice", "TotalGhostOffices"],
+                  ["GhostOffice", "CriticalGhostOffices"],
+                  ["GhostOffice", "HighRiskGhostOffices"]
+                ],
+                "title": "Ghost Office Metrics",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["GhostOffice/Security", "ActiveCorrelations"],
+                  ["GhostOffice/Security", "CriticalCorrelations"],
+                  ["GhostOffice/Security", "MaxSpikeMultiplier"]
+                ],
+                "title": "Security Metrics",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "log",
+              "x": 0,
+              "y": 6,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "query": "SOURCE '/aws/lambda/ghostoffice-scam-alert-trigger-${Environment}' | fields @timestamp, @message | filter @message like /ALERT/ | sort @timestamp desc | limit 20",
+                "title": "Recent Security Alerts",
+                "region": "${AWS::Region}"
+              }
+            }
+          ]
+        }
+
+Conditions:
+  CreateSNSTopics: !Equals [!Ref CivicAlertsTopic, '']
+
+Outputs:
+  CivicDataBucketName:
+    Description: S3 bucket for civic data uploads
+    Value: !Ref CivicDataBucket
+
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${GhostOfficeApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+
+  CivicEventProcessorArn:
+    Description: Civic Event Processor Lambda ARN
+    Value: !GetAtt CivicEventProcessorFunction.Arn
+
+  GhostOfficeCalculatorArn:
+    Description: Ghost Office Calculator Lambda ARN
+    Value: !GetAtt GhostOfficeCalculatorFunction.Arn
+
+  ScamAlertTriggerArn:
+    Description: Scam Alert Trigger Lambda ARN
+    Value: !GetAtt ScamAlertTriggerFunction.Arn
+
+  BedrockAnalyzerArn:
+    Description: Bedrock Analyzer Lambda ARN
+    Value: !GetAtt BedrockAnalyzerFunction.Arn
+
+  DashboardUrl:
+    Description: CloudWatch Dashboard URL
+    Value: !Sub https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=GhostOffice-${Environment}

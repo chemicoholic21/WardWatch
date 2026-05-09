@@ -1,0 +1,16 @@
+{
+  "name": "ghostoffice-data-generators",
+  "version": "1.0.0",
+  "description": "Synthetic data generators for GhostOffice civic observability platform",
+  "type": "module",
+  "main": "generate-all.js",
+  "scripts": {
+    "generate": "node generate-all.js",
+    "generate:complaints": "node generate-all.js --type complaints",
+    "generate:scams": "node generate-all.js --type scams",
+    "generate:traces": "node generate-all.js --type traces"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1"
+  }
+}

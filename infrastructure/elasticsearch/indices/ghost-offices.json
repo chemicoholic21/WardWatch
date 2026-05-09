@@ -1,0 +1,151 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "index": {
+      "refresh_interval": "30s"
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "office_id": {
+        "type": "keyword"
+      },
+      "department": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "department_name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "ward_id": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "ward_name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "ward_number": {
+        "type": "integer"
+      },
+      "zone": {
+        "type": "keyword",
+        "doc_values": true
+      },
+      "geo_location": {
+        "type": "geo_point"
+      },
+      "ghost_score": {
+        "type": "float"
+      },
+      "ghost_probability": {
+        "type": "float"
+      },
+      "alert_level": {
+        "type": "keyword"
+      },
+      "factors": {
+        "type": "object",
+        "properties": {
+          "stagnation_rate": { "type": "float" },
+          "escalation_loop_frequency": { "type": "float" },
+          "avg_resolution_days": { "type": "float" },
+          "median_resolution_days": { "type": "float" },
+          "overdue_percentage": { "type": "float" },
+          "transfer_ratio": { "type": "float" },
+          "circular_escalation_count": { "type": "integer" },
+          "suspicious_closure_rate": { "type": "float" },
+          "inactivity_days": { "type": "integer" },
+          "rejection_rate": { "type": "float" },
+          "response_time_hours": { "type": "float" }
+        }
+      },
+      "complaint_stats": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "open": { "type": "integer" },
+          "pending": { "type": "integer" },
+          "in_progress": { "type": "integer" },
+          "closed": { "type": "integer" },
+          "resolved": { "type": "integer" },
+          "rejected": { "type": "integer" },
+          "transferred": { "type": "integer" },
+          "overdue": { "type": "integer" }
+        }
+      },
+      "accountability_score": {
+        "type": "float"
+      },
+      "responsiveness_score": {
+        "type": "float"
+      },
+      "transparency_score": {
+        "type": "float"
+      },
+      "civic_integrity_index": {
+        "type": "float"
+      },
+      "risk_factors": {
+        "type": "nested",
+        "properties": {
+          "factor_id": { "type": "keyword" },
+          "factor": { "type": "keyword" },
+          "severity": { "type": "keyword" },
+          "score": { "type": "float" },
+          "weight": { "type": "float" },
+          "description": { "type": "text" },
+          "evidence_count": { "type": "integer" }
+        }
+      },
+      "top_issues": {
+        "type": "nested",
+        "properties": {
+          "issue_type": { "type": "keyword" },
+          "count": { "type": "integer" },
+          "avg_resolution_days": { "type": "float" }
+        }
+      },
+      "trend_7d": {
+        "type": "keyword"
+      },
+      "trend_30d": {
+        "type": "keyword"
+      },
+      "trend_score_7d": {
+        "type": "float"
+      },
+      "trend_score_30d": {
+        "type": "float"
+      },
+      "last_activity_date": {
+        "type": "date"
+      },
+      "last_resolution_date": {
+        "type": "date"
+      },
+      "calculated_at": {
+        "type": "date"
+      },
+      "period_start": {
+        "type": "date"
+      },
+      "period_end": {
+        "type": "date"
+      },
+      "rank": {
+        "type": "integer"
+      },
+      "rank_change": {
+        "type": "integer"
+      }
+    }
+  }
+}
