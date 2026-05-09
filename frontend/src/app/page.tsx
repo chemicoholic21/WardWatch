@@ -1,35 +1,81 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Ghost,
-  Shield,
-  FileText,
-  MapPin,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Clock,
-  Users,
-  Zap,
-  Search,
-  Bell,
-  Settings,
-  BarChart3,
-  Bot,
-  FileWarning,
-  ArrowRight,
-  ExternalLink,
-  Activity,
-  Target,
-  Layers,
-  ChevronRight,
-  Play,
-  Building2
-} from 'lucide-react';
 
-// API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+// Icons as simple SVG components
+const GhostIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2 2 3-3 3 3 2-2 3 3V10a8 8 0 0 0-8-8z"/>
+  </svg>
+);
+
+const ShieldIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+);
+
+const FileIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>
+  </svg>
+);
+
+const ClockIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+  </svg>
+);
+
+const AlertIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+  </svg>
+);
+
+const MapPinIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+  </svg>
+);
+
+const ZapIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+  </svg>
+);
+
+const UsersIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+
+const SearchIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+  </svg>
+);
+
+const BellIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+);
+
+const PlayIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polygon points="5 3 19 12 5 21 5 3"/>
+  </svg>
+);
+
+const TargetIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+  </svg>
+);
 
 // Types
 interface GhostOffice {
@@ -39,15 +85,7 @@ interface GhostOffice {
   zone: string;
   ghost_score: number;
   alert_level: 'critical' | 'high' | 'medium' | 'low';
-  complaint_stats: {
-    total: number;
-    open: number;
-    overdue: number;
-  };
-  factors: {
-    stagnation_rate: number;
-    avg_resolution_days: number;
-  };
+  complaint_stats: { total: number; open: number; overdue: number };
 }
 
 interface ScamReport {
@@ -56,55 +94,132 @@ interface ScamReport {
   spoofed_department: string;
   risk_level: 'critical' | 'high' | 'medium' | 'low';
   trust_score: number;
-  reported_at: string;
   victim_reports: number;
   related_outage: { is_correlated: boolean };
 }
 
-interface DashboardStats {
-  complaints: { total: number; overdue_count: number; avg_resolution_days: number };
-  ghost_offices: { critical_count: number; total_offices: number };
-  scams: { total: number; by_risk_level: Record<string, number> };
-}
+// Styles object
+const styles = {
+  // Layout
+  container: "min-h-screen bg-[hsl(222,47%,7%)]",
+  maxWidth: "max-w-7xl mx-auto px-4 sm:px-6",
+
+  // Header
+  header: "sticky top-0 z-50 bg-[hsl(222,47%,9%)] border-b border-[hsl(215,20%,18%)]",
+  headerInner: "h-16 flex items-center justify-between gap-4",
+  logo: "flex items-center gap-3",
+  logoIcon: "w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white",
+  logoText: "text-lg font-bold text-white",
+  logoSub: "text-xs text-gray-500",
+  searchBox: "flex-1 max-w-md relative",
+  searchInput: "w-full bg-[hsl(222,47%,12%)] border border-[hsl(215,20%,20%)] rounded-lg pl-10 pr-4 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-purple-500",
+  headerActions: "flex items-center gap-2",
+  iconBtn: "p-2 rounded-lg text-gray-400 hover:text-white hover:bg-[hsl(215,20%,20%)] transition-colors",
+  avatar: "w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold",
+
+  // Navigation
+  nav: "bg-[hsl(222,47%,9%)] border-b border-[hsl(215,20%,18%)]",
+  navInner: "flex gap-1",
+  navItem: "px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px",
+  navActive: "text-purple-400 border-purple-500",
+  navInactive: "text-gray-500 border-transparent hover:text-gray-300",
+  navBadge: "ml-2 px-1.5 py-0.5 text-xs rounded font-medium",
+
+  // Main content
+  main: "py-6",
+
+  // Metric cards
+  metricsGrid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6",
+  metricCard: "bg-[hsl(222,47%,10%)] border border-[hsl(215,20%,18%)] rounded-xl p-5",
+  metricHeader: "flex items-start justify-between mb-3",
+  metricLabel: "text-xs text-gray-500 uppercase tracking-wide",
+  metricValue: "text-3xl font-bold text-white font-mono",
+  metricIcon: "w-10 h-10 rounded-lg flex items-center justify-center",
+  metricDelta: "flex items-center gap-1 text-xs mt-2",
+
+  // Panels
+  twoCol: "grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6",
+  panel: "bg-[hsl(222,47%,10%)] border border-[hsl(215,20%,18%)] rounded-xl overflow-hidden",
+  panelHeader: "flex items-center justify-between px-5 py-4 border-b border-[hsl(215,20%,18%)]",
+  panelTitle: "flex items-center gap-2 text-sm font-semibold text-white",
+  panelBody: "p-5",
+
+  // Ghost office list
+  officeRow: "flex items-center gap-4 py-4 px-5 border-b border-[hsl(215,20%,15%)] hover:bg-[hsl(215,20%,12%)] transition-colors cursor-pointer",
+  officeRank: "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold font-mono",
+  officeInfo: "flex-1 min-w-0",
+  officeName: "font-semibold text-white text-sm",
+  officeLocation: "flex items-center gap-2 text-xs text-gray-500 mt-0.5",
+  officeScore: "text-right",
+  scoreBar: "w-20 h-1.5 bg-[hsl(215,20%,20%)] rounded-full overflow-hidden",
+  scoreValue: "text-lg font-bold font-mono text-purple-400",
+
+  // Status badges
+  badge: "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
+  badgeCritical: "bg-red-500/20 text-red-400",
+  badgeHigh: "bg-orange-500/20 text-orange-400",
+  badgeMedium: "bg-yellow-500/20 text-yellow-400",
+  badgeLow: "bg-green-500/20 text-green-400",
+
+  // TrustLens
+  textarea: "w-full bg-[hsl(222,47%,8%)] border border-[hsl(215,20%,20%)] rounded-lg p-3 text-sm text-gray-300 placeholder-gray-500 resize-none focus:outline-none focus:border-purple-500",
+  btnPrimary: "w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2",
+
+  // Scam card
+  scamCard: "p-4 bg-[hsl(222,47%,8%)] border-l-3 border-l-red-500 rounded-lg mb-3",
+  scamCardCorrelated: "border-l-orange-500 bg-gradient-to-r from-orange-500/5 to-transparent",
+
+  // Zone cards
+  zonesGrid: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6",
+  zoneCard: "bg-[hsl(222,47%,10%)] border border-[hsl(215,20%,18%)] rounded-xl p-4 hover:border-purple-500/50 transition-colors cursor-pointer",
+  zoneGrade: "w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold font-mono",
+
+  // Agent cards
+  agentsGrid: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
+  agentCard: "bg-[hsl(222,47%,10%)] border border-[hsl(215,20%,18%)] rounded-xl p-5 relative overflow-hidden",
+  agentRunning: "border-green-500/30",
+  agentIcon: "w-12 h-12 rounded-xl flex items-center justify-center text-white mb-3",
+  agentName: "font-semibold text-white text-sm",
+  agentDesc: "text-xs text-gray-500 mt-1",
+  agentStatus: "absolute top-4 right-4 text-xs px-2 py-0.5 rounded-full",
+
+  // Footer
+  footer: "border-t border-[hsl(215,20%,18%)] mt-8",
+  footerInner: "py-6 flex items-center justify-between text-sm text-gray-500",
+};
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeTab, setActiveTab] = useState('overview');
   const [ghostOffices, setGhostOffices] = useState<GhostOffice[]>([]);
   const [scamReports, setScamReports] = useState<ScamReport[]>([]);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [analyzeInput, setAnalyzeInput] = useState('');
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [stats, setStats] = useState({ complaints: 5247, ghostCount: 2, scamCount: 3, avgDays: 8.3 });
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchData();
   }, []);
 
-  async function fetchDashboardData() {
+  async function fetchData() {
     try {
-      const [ghostRes, scamRes, statsRes] = await Promise.all([
+      const [ghostRes, scamRes] = await Promise.all([
         fetch(`${API_URL}/api/ghost-offices?limit=10`).catch(() => null),
         fetch(`${API_URL}/api/trustlens/reports?limit=5`).catch(() => null),
-        fetch(`${API_URL}/api/analytics/dashboard`).catch(() => null),
       ]);
 
       if (ghostRes?.ok) {
         const data = await ghostRes.json();
-        setGhostOffices(data.data || []);
+        if (data.data?.length) setGhostOffices(data.data);
       }
 
       if (scamRes?.ok) {
         const data = await scamRes.json();
-        setScamReports(data.data || []);
+        if (data.data?.length) setScamReports(data.data);
       }
-
-      if (statsRes?.ok) {
-        const data = await statsRes.json();
-        setStats(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+    } catch (e) {
+      console.error(e);
     } finally {
       setIsLoading(false);
     }
@@ -123,127 +238,114 @@ export default function Dashboard() {
         const data = await res.json();
         setAnalysisResult(data.data);
       }
-    } catch (error) {
-      console.error('Analysis failed:', error);
+    } catch (e) {
+      console.error(e);
     } finally {
       setIsAnalyzing(false);
     }
   }
 
-  // Demo data for ghost offices if API hasn't returned yet
-  const displayGhostOffices = ghostOffices.length > 0 ? ghostOffices : [
-    { office_id: '1', department: 'BBMP', ward_name: 'Mahadevapura', zone: 'East', ghost_score: 92.4, alert_level: 'critical' as const, complaint_stats: { total: 187, open: 142, overdue: 89 }, factors: { stagnation_rate: 78, avg_resolution_days: 45 } },
-    { office_id: '2', department: 'BWSSB', ward_name: 'HSR Layout', zone: 'South', ghost_score: 87.1, alert_level: 'critical' as const, complaint_stats: { total: 156, open: 118, overdue: 72 }, factors: { stagnation_rate: 71, avg_resolution_days: 38 } },
-    { office_id: '3', department: 'BESCOM', ward_name: 'Whitefield', zone: 'East', ghost_score: 79.8, alert_level: 'high' as const, complaint_stats: { total: 134, open: 98, overdue: 56 }, factors: { stagnation_rate: 65, avg_resolution_days: 32 } },
-    { office_id: '4', department: 'BBMP', ward_name: 'Koramangala', zone: 'South', ghost_score: 72.3, alert_level: 'high' as const, complaint_stats: { total: 98, open: 67, overdue: 41 }, factors: { stagnation_rate: 58, avg_resolution_days: 28 } },
-    { office_id: '5', department: 'BWSSB', ward_name: 'Indiranagar', zone: 'East', ghost_score: 65.9, alert_level: 'medium' as const, complaint_stats: { total: 76, open: 45, overdue: 28 }, factors: { stagnation_rate: 49, avg_resolution_days: 21 } },
+  // Demo data
+  const demoGhostOffices: GhostOffice[] = [
+    { office_id: '1', department: 'BBMP', ward_name: 'Mahadevapura', zone: 'East', ghost_score: 92.4, alert_level: 'critical', complaint_stats: { total: 187, open: 142, overdue: 89 } },
+    { office_id: '2', department: 'BWSSB', ward_name: 'HSR Layout', zone: 'South', ghost_score: 87.1, alert_level: 'critical', complaint_stats: { total: 156, open: 118, overdue: 72 } },
+    { office_id: '3', department: 'BESCOM', ward_name: 'Whitefield', zone: 'East', ghost_score: 79.8, alert_level: 'high', complaint_stats: { total: 134, open: 98, overdue: 56 } },
+    { office_id: '4', department: 'BBMP', ward_name: 'Koramangala', zone: 'South', ghost_score: 72.3, alert_level: 'high', complaint_stats: { total: 98, open: 67, overdue: 41 } },
+    { office_id: '5', department: 'BWSSB', ward_name: 'Indiranagar', zone: 'East', ghost_score: 65.9, alert_level: 'medium', complaint_stats: { total: 76, open: 45, overdue: 28 } },
   ];
 
-  const displayScamReports = scamReports.length > 0 ? scamReports : [
-    { report_id: '1', content: 'BESCOM Alert: Power disconnection in 2 hours. Pay Rs. 1500 now at bit.ly/bescom-pay', spoofed_department: 'BESCOM', risk_level: 'critical' as const, trust_score: 8, reported_at: new Date().toISOString(), victim_reports: 23, related_outage: { is_correlated: true } },
-    { report_id: '2', content: 'BWSSB: Your water connection will be cut. Clear dues via UPI: 9876543210@paytm', spoofed_department: 'BWSSB', risk_level: 'critical' as const, trust_score: 12, reported_at: new Date().toISOString(), victim_reports: 15, related_outage: { is_correlated: false } },
-    { report_id: '3', content: 'BBMP Property Tax Notice: 50% penalty waiver if paid today. Contact 9988776655', spoofed_department: 'BBMP', risk_level: 'high' as const, trust_score: 25, reported_at: new Date().toISOString(), victim_reports: 8, related_outage: { is_correlated: false } },
+  const demoScamReports: ScamReport[] = [
+    { report_id: '1', content: 'BESCOM Alert: Power disconnection in 2 hours. Pay Rs. 1500 at bit.ly/bescom-pay', spoofed_department: 'BESCOM', risk_level: 'critical', trust_score: 8, victim_reports: 23, related_outage: { is_correlated: true } },
+    { report_id: '2', content: 'BWSSB: Water connection will be cut. Clear dues via UPI: 9876543210@paytm', spoofed_department: 'BWSSB', risk_level: 'critical', trust_score: 12, victim_reports: 15, related_outage: { is_correlated: false } },
+    { report_id: '3', content: 'BBMP Property Tax: 50% penalty waiver if paid today. Contact 9988776655', spoofed_department: 'BBMP', risk_level: 'high', trust_score: 25, victim_reports: 8, related_outage: { is_correlated: false } },
   ];
+
+  const displayGhosts = ghostOffices.length > 0 ? ghostOffices : demoGhostOffices;
+  const displayScams = scamReports.length > 0 ? scamReports : demoScamReports;
+
+  const getBadgeClass = (level: string) => {
+    switch (level) {
+      case 'critical': return styles.badgeCritical;
+      case 'high': return styles.badgeHigh;
+      case 'medium': return styles.badgeMedium;
+      default: return styles.badgeLow;
+    }
+  };
+
+  const getGradeColor = (grade: string) => {
+    switch (grade) {
+      case 'A': return 'bg-green-500/20 text-green-400';
+      case 'B': return 'bg-blue-500/20 text-blue-400';
+      case 'C': return 'bg-yellow-500/20 text-yellow-400';
+      case 'D': return 'bg-orange-500/20 text-orange-400';
+      default: return 'bg-red-500/20 text-red-400';
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center surface-void">
+      <div className={styles.container + " flex items-center justify-center"}>
         <div className="text-center">
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            <Ghost className="w-20 h-20 text-ghost animate-pulse" />
-            <div className="absolute inset-0 w-20 h-20 rounded-full border-2 border-[hsl(270,65%,60%)]/30 animate-ping" />
+          <div className="w-16 h-16 mx-auto mb-4 text-purple-500 animate-pulse">
+            <GhostIcon className="w-16 h-16" />
           </div>
-          <h2 className="text-xl font-semibold text-gradient mb-2">Initializing GhostOffice</h2>
-          <p className="text-smoke text-sm">Connecting to Civic Intelligence Network...</p>
+          <h2 className="text-xl font-semibold text-white mb-2">Loading GhostOffice</h2>
+          <p className="text-gray-500 text-sm">Connecting to Civic Intelligence...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen surface-void">
-      {/* ═══════════════════════════════════════════════════════════════
-          HEADER
-          ═══════════════════════════════════════════════════════════════ */}
-      <header className="sticky top-0 z-50 surface-base border-b border-[hsl(220,12%,18%)]">
-        <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Ghost className="w-8 h-8 text-ghost" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[hsl(152,60%,48%)]">
-                <span className="absolute inset-0 rounded-full bg-[hsl(152,60%,48%)] animate-ping opacity-75" />
+    <div className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.maxWidth}>
+          <div className={styles.headerInner}>
+            <div className={styles.logo}>
+              <div className={styles.logoIcon}>
+                <GhostIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <div className={styles.logoText}>GhostOffice</div>
+                <div className={styles.logoSub}>Civic Intelligence</div>
               </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-pure">GhostOffice</h1>
-              <p className="text-xs text-smoke -mt-0.5">Civic Intelligence Platform</p>
-            </div>
-          </div>
 
-          {/* Search */}
-          <div className="flex-1 max-w-xl mx-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-smoke" />
-              <input
-                type="text"
-                placeholder="Search complaints, wards, departments..."
-                className="input-field pl-11 py-2.5"
-              />
+            <div className={styles.searchBox}>
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input type="text" placeholder="Search complaints, wards..." className={styles.searchInput} />
             </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <button className="btn-ghost p-2.5 rounded-lg relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[hsl(0,72%,58%)]" />
-            </button>
-            <button className="btn-ghost p-2.5 rounded-lg">
-              <Settings className="w-5 h-5" />
-            </button>
-            <div className="w-px h-8 bg-[hsl(220,12%,18%)] mx-2" />
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg surface-raised cursor-pointer hover:border-[hsl(270,65%,60%)]/50 transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[hsl(270,65%,60%)] to-[hsl(300,60%,50%)] flex items-center justify-center">
-                <span className="text-sm font-bold text-pure">A</span>
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-light">Admin</p>
-                <p className="text-xs text-smoke">Bengaluru</p>
-              </div>
+            <div className={styles.headerActions}>
+              <button className={styles.iconBtn}>
+                <BellIcon className="w-5 h-5" />
+              </button>
+              <div className={styles.avatar}>A</div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          NAVIGATION TABS
-          ═══════════════════════════════════════════════════════════════ */}
-      <nav className="surface-base border-b border-[hsl(220,12%,18%)]">
-        <div className="max-w-[1800px] mx-auto px-6">
-          <div className="flex items-center gap-1">
+      {/* Navigation */}
+      <nav className={styles.nav}>
+        <div className={styles.maxWidth}>
+          <div className={styles.navInner}>
             {[
-              { id: 'overview', label: 'Overview', icon: Layers },
-              { id: 'ghost-offices', label: 'Ghost Offices', icon: Ghost, badge: displayGhostOffices.filter(g => g.alert_level === 'critical').length },
-              { id: 'trustlens', label: 'TrustLens', icon: Shield, badge: displayScamReports.length },
-              { id: 'complaints', label: 'Complaints', icon: FileText },
-              { id: 'agents', label: 'Agents', icon: Bot },
+              { id: 'overview', label: 'Overview' },
+              { id: 'ghost-offices', label: 'Ghost Offices', badge: displayGhosts.filter(g => g.alert_level === 'critical').length },
+              { id: 'trustlens', label: 'TrustLens', badge: displayScams.length },
+              { id: 'complaints', label: 'Complaints' },
+              { id: 'agents', label: 'Agents' },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveSection(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium transition-all border-b-2 -mb-[1px] ${
-                  activeSection === tab.id
-                    ? 'border-[hsl(270,65%,60%)] text-ghost'
-                    : 'border-transparent text-smoke hover:text-light'
-                }`}
+                onClick={() => setActiveTab(tab.id)}
+                className={`${styles.navItem} ${activeTab === tab.id ? styles.navActive : styles.navInactive}`}
               >
-                <tab.icon className="w-4 h-4" />
                 {tab.label}
                 {tab.badge && (
-                  <span className={`ml-1 px-1.5 py-0.5 rounded text-xs font-bold ${
-                    tab.id === 'ghost-offices' ? 'bg-[hsl(0,72%,58%)]/20 text-danger' : 'bg-[hsl(38,92%,55%)]/20 text-warning'
-                  }`}>
+                  <span className={`${styles.navBadge} ${tab.id === 'ghost-offices' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
                     {tab.badge}
                   </span>
                 )}
@@ -253,202 +355,163 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          MAIN CONTENT
-          ═══════════════════════════════════════════════════════════════ */}
-      <main className="max-w-[1800px] mx-auto px-6 py-8">
+      {/* Main */}
+      <main className={styles.main}>
+        <div className={styles.maxWidth}>
 
-        {/* ─────────────────────────────────────────────────────────────
-            METRICS BAR
-            ───────────────────────────────────────────────────────────── */}
-        <div className="flex gap-5 mb-8">
-          {/* Total Complaints */}
-          <div className="flex-1 panel p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-smoke text-xs uppercase tracking-wider mb-2">Total Complaints</p>
-                <p className="metric-value">{(stats?.complaints.total || 5247).toLocaleString()}</p>
-                <div className="metric-delta positive mt-3">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>12.5% from last month</span>
+          {/* Metrics */}
+          <div className={styles.metricsGrid}>
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <div>
+                  <div className={styles.metricLabel}>Total Complaints</div>
+                  <div className={styles.metricValue}>{stats.complaints.toLocaleString()}</div>
+                </div>
+                <div className={`${styles.metricIcon} bg-blue-500/10 text-blue-400`}>
+                  <FileIcon className="w-5 h-5" />
                 </div>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-[hsl(205,85%,55%)]/10 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-info" />
+              <div className={`${styles.metricDelta} text-green-400`}>
+                <span>↑ 12.5% from last month</span>
+              </div>
+            </div>
+
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <div>
+                  <div className={styles.metricLabel}>Ghost Offices</div>
+                  <div className={`${styles.metricValue} text-purple-400`}>{displayGhosts.filter(g => g.alert_level === 'critical').length}</div>
+                </div>
+                <div className={`${styles.metricIcon} bg-purple-500/10 text-purple-400`}>
+                  <GhostIcon className="w-5 h-5" />
+                </div>
+              </div>
+              <div className={`${styles.metricDelta} text-red-400`}>
+                <AlertIcon className="w-3 h-3" />
+                <span>Critical attention needed</span>
+              </div>
+            </div>
+
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <div>
+                  <div className={styles.metricLabel}>Scam Alerts</div>
+                  <div className={`${styles.metricValue} text-red-400`}>{displayScams.length}</div>
+                </div>
+                <div className={`${styles.metricIcon} bg-red-500/10 text-red-400`}>
+                  <ShieldIcon className="w-5 h-5" />
+                </div>
+              </div>
+              <div className={`${styles.metricDelta} text-orange-400`}>
+                <ZapIcon className="w-3 h-3" />
+                <span>Active threats detected</span>
+              </div>
+            </div>
+
+            <div className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <div>
+                  <div className={styles.metricLabel}>Avg Resolution</div>
+                  <div className={styles.metricValue}>{stats.avgDays}<span className="text-lg text-gray-500 ml-1">d</span></div>
+                </div>
+                <div className={`${styles.metricIcon} bg-green-500/10 text-green-400`}>
+                  <ClockIcon className="w-5 h-5" />
+                </div>
+              </div>
+              <div className={`${styles.metricDelta} text-green-400`}>
+                <span>↓ 15% faster than last week</span>
               </div>
             </div>
           </div>
 
-          {/* Ghost Offices */}
-          <div className="flex-1 panel p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-smoke text-xs uppercase tracking-wider mb-2">Ghost Offices</p>
-                <p className="metric-value text-ghost">{displayGhostOffices.filter(g => g.alert_level === 'critical').length}</p>
-                <div className="metric-delta negative mt-3">
-                  <AlertTriangle className="w-3 h-3" />
-                  <span>Critical attention needed</span>
+          {/* Two Column Layout */}
+          <div className={styles.twoCol}>
+            {/* Ghost Office Leaderboard - Takes 2 columns */}
+            <div className={`${styles.panel} lg:col-span-2`}>
+              <div className={styles.panelHeader}>
+                <div className={styles.panelTitle}>
+                  <GhostIcon className="w-5 h-5 text-purple-400" />
+                  <span>Ghost Office Leaderboard</span>
                 </div>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-[hsl(270,65%,60%)]/10 flex items-center justify-center">
-                <Ghost className="w-5 h-5 text-ghost" />
-              </div>
-            </div>
-          </div>
-
-          {/* Scam Alerts */}
-          <div className="flex-1 panel p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-smoke text-xs uppercase tracking-wider mb-2">Scam Alerts</p>
-                <p className="metric-value text-danger">{stats?.scams.total || displayScamReports.length}</p>
-                <div className="metric-delta negative mt-3">
-                  <Zap className="w-3 h-3" />
-                  <span>Active threats detected</span>
-                </div>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-[hsl(0,72%,58%)]/10 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-danger" />
-              </div>
-            </div>
-          </div>
-
-          {/* Avg Resolution */}
-          <div className="flex-1 panel p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-smoke text-xs uppercase tracking-wider mb-2">Avg Resolution</p>
-                <p className="metric-value">{(stats?.complaints.avg_resolution_days || 8.3).toFixed(1)}<span className="text-lg text-smoke ml-0.5">d</span></p>
-                <div className="metric-delta positive mt-3">
-                  <TrendingDown className="w-3 h-3" />
-                  <span>15% faster than last week</span>
-                </div>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-[hsl(152,60%,48%)]/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-safe" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ─────────────────────────────────────────────────────────────
-            MAIN PANELS
-            ───────────────────────────────────────────────────────────── */}
-        <div className="flex gap-6">
-
-          {/* LEFT COLUMN - Ghost Offices */}
-          <div className="flex-1 min-w-0">
-            <div className="panel">
-              <div className="panel-header">
-                <div className="flex items-center gap-3">
-                  <Ghost className="w-5 h-5 text-ghost" />
-                  <span className="panel-title">Ghost Office Leaderboard</span>
-                </div>
-                <span className="status-badge critical">
-                  <span className="pulse-dot" style={{ background: 'hsl(0, 72%, 58%)' }} />
-                  {displayGhostOffices.filter(g => g.alert_level === 'critical').length} Critical
+                <span className={`${styles.badge} ${styles.badgeCritical}`}>
+                  {displayGhosts.filter(g => g.alert_level === 'critical').length} Critical
                 </span>
               </div>
 
-              <div className="divide-y divide-[hsl(220,12%,18%)/50]">
-                {displayGhostOffices.slice(0, 6).map((office, index) => (
-                  <div key={office.office_id} className="p-4 hover:bg-[hsl(220,12%,18%)]/30 transition-colors cursor-pointer group">
-                    <div className="flex items-center gap-4">
-                      {/* Rank */}
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold font-mono ${
-                        index === 0 ? 'bg-[hsl(0,72%,58%)]/20 text-danger' :
-                        index === 1 ? 'bg-[hsl(38,92%,55%)]/20 text-warning' :
-                        index === 2 ? 'bg-[hsl(270,65%,60%)]/20 text-ghost' :
-                        'bg-[hsl(220,12%,18%)] text-smoke'
-                      }`}>
-                        {index + 1}
+              <div>
+                {displayGhosts.slice(0, 5).map((office, idx) => (
+                  <div key={office.office_id} className={styles.officeRow}>
+                    <div className={`${styles.officeRank} ${
+                      idx === 0 ? 'bg-red-500/20 text-red-400' :
+                      idx === 1 ? 'bg-orange-500/20 text-orange-400' :
+                      idx === 2 ? 'bg-purple-500/20 text-purple-400' :
+                      'bg-[hsl(215,20%,20%)] text-gray-400'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className={styles.officeInfo}>
+                      <div className="flex items-center gap-2">
+                        <span className={styles.officeName}>{office.department}</span>
+                        <span className={`${styles.badge} ${getBadgeClass(office.alert_level)}`}>
+                          {office.alert_level}
+                        </span>
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-light">{office.department}</span>
-                          <span className={`status-badge ${office.alert_level}`}>
-                            {office.alert_level}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm text-smoke">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {office.ward_name}
-                          </span>
-                          <span className="text-[hsl(220,12%,28%)]">•</span>
-                          <span>{office.zone} Zone</span>
-                        </div>
+                      <div className={styles.officeLocation}>
+                        <MapPinIcon className="w-3 h-3" />
+                        <span>{office.ward_name}</span>
+                        <span className="text-gray-600">•</span>
+                        <span>{office.zone} Zone</span>
                       </div>
-
-                      {/* Ghost Score */}
-                      <div className="text-right">
-                        <div className="flex items-center gap-3">
-                          <div className="w-20">
-                            <div className="progress-bar h-1.5">
-                              <div
-                                className={`progress-bar-fill ${
-                                  office.ghost_score >= 80 ? 'danger' :
-                                  office.ghost_score >= 60 ? 'warning' :
-                                  office.ghost_score >= 40 ? 'ghost' : 'safe'
-                                }`}
-                                style={{ width: `${office.ghost_score}%` }}
-                              />
-                            </div>
-                          </div>
-                          <span className="font-mono font-bold text-lg text-ghost w-12 text-right">
-                            {office.ghost_score.toFixed(1)}
-                          </span>
+                    </div>
+                    <div className={styles.officeScore}>
+                      <div className="flex items-center gap-3">
+                        <div className={styles.scoreBar}>
+                          <div
+                            className={`h-full rounded-full ${
+                              office.ghost_score >= 80 ? 'bg-red-500' :
+                              office.ghost_score >= 60 ? 'bg-orange-500' :
+                              'bg-yellow-500'
+                            }`}
+                            style={{ width: `${office.ghost_score}%` }}
+                          />
                         </div>
-                        <p className="text-xs text-smoke mt-1">
-                          {office.complaint_stats.open} open · {office.complaint_stats.overdue} overdue
-                        </p>
+                        <span className={styles.scoreValue}>{office.ghost_score.toFixed(1)}</span>
                       </div>
-
-                      <ChevronRight className="w-4 h-4 text-smoke opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="text-xs text-gray-500 mt-1">
+                        {office.complaint_stats.open} open · {office.complaint_stats.overdue} overdue
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <div className="p-4 border-t border-[hsl(220,12%,18%)]">
-                <button className="w-full btn-secondary justify-center">
-                  View All Ghost Offices
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
             </div>
-          </div>
 
-          {/* RIGHT COLUMN - TrustLens */}
-          <div className="w-[440px] flex-shrink-0 space-y-6">
-
-            {/* Live Analysis */}
-            <div className="panel">
-              <div className="panel-header">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-danger" />
-                  <span className="panel-title">TrustLens Analyzer</span>
+            {/* TrustLens Panel - Takes 1 column */}
+            <div className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <div className={styles.panelTitle}>
+                  <ShieldIcon className="w-5 h-5 text-red-400" />
+                  <span>TrustLens</span>
                 </div>
-                <span className="flex items-center gap-2 text-xs text-safe">
-                  <span className="pulse-dot" />
+                <span className="flex items-center gap-1.5 text-xs text-green-400">
+                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                   Live
                 </span>
               </div>
 
-              <div className="p-4">
-                <p className="text-sm text-smoke mb-3">Paste a suspicious message to analyze</p>
+              <div className={styles.panelBody}>
+                <p className="text-sm text-gray-500 mb-3">Analyze suspicious messages</p>
                 <textarea
                   value={analyzeInput}
                   onChange={(e) => setAnalyzeInput(e.target.value)}
-                  placeholder="e.g., BESCOM URGENT: Pay Rs. 1500 immediately..."
-                  className="input-field h-20 resize-none mb-3 text-sm"
+                  placeholder="Paste message here..."
+                  className={styles.textarea}
+                  rows={3}
                 />
                 <button
                   onClick={analyzeMessage}
                   disabled={isAnalyzing || !analyzeInput.trim()}
-                  className="btn-primary w-full disabled:opacity-50"
+                  className={`${styles.btnPrimary} mt-3 disabled:opacity-50`}
                 >
                   {isAnalyzing ? (
                     <>
@@ -457,208 +520,143 @@ export default function Dashboard() {
                     </>
                   ) : (
                     <>
-                      <Target className="w-4 h-4" />
-                      Analyze Message
+                      <TargetIcon className="w-4 h-4" />
+                      Analyze
                     </>
                   )}
                 </button>
 
-                {/* Analysis Result */}
                 {analysisResult && (
-                  <div className="mt-4 p-4 rounded-xl bg-[hsl(230,20%,8%)] border border-[hsl(220,12%,18%)]">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`status-badge ${analysisResult.risk_level}`}>
+                  <div className="mt-4 p-4 rounded-lg bg-[hsl(222,47%,8%)] border border-[hsl(215,20%,20%)]">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`${styles.badge} ${getBadgeClass(analysisResult.risk_level)}`}>
                         {analysisResult.risk_level?.toUpperCase()} RISK
                       </span>
-                      <span className="font-mono text-lg font-bold text-light">
-                        {analysisResult.trust_score}/100
-                      </span>
+                      <span className="font-mono font-bold text-white">{analysisResult.trust_score}/100</span>
                     </div>
-                    <p className="text-sm text-smoke">
-                      Scam Probability: <span className="text-danger font-mono font-bold">
-                        {(analysisResult.scam_probability * 100).toFixed(1)}%
-                      </span>
+                    <p className="text-sm text-gray-400">
+                      Scam Probability: <span className="text-red-400 font-mono">{(analysisResult.scam_probability * 100).toFixed(1)}%</span>
                     </p>
-                    {analysisResult.indicators && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {Object.entries(analysisResult.indicators).map(([key, value]) => (
-                          value && (
-                            <span key={key} className="text-xs px-2 py-1 rounded bg-[hsl(0,72%,58%)]/10 text-danger">
-                              {key.replace(/_/g, ' ')}
-                            </span>
-                          )
-                        ))}
-                      </div>
-                    )}
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Recent Scam Reports */}
-            <div className="panel">
-              <div className="panel-header">
-                <div className="flex items-center gap-3">
-                  <FileWarning className="w-5 h-5 text-warning" />
-                  <span className="panel-title">Recent Threats</span>
-                </div>
-              </div>
-
-              <div className="p-3 space-y-3">
-                {displayScamReports.slice(0, 3).map((report) => (
-                  <div
-                    key={report.report_id}
-                    className={`scam-card ${report.related_outage?.is_correlated ? 'correlated' : ''}`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <span className={`status-badge ${report.risk_level}`}>
-                        {report.risk_level}
-                      </span>
-                      {report.related_outage?.is_correlated && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-[hsl(38,92%,55%)]/10 text-warning flex items-center gap-1">
-                          <Zap className="w-3 h-3" />
-                          Outage Linked
+                <div className="mt-4 pt-4 border-t border-[hsl(215,20%,18%)]">
+                  <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Recent Threats</p>
+                  {displayScams.slice(0, 2).map((scam) => (
+                    <div key={scam.report_id} className={`${styles.scamCard} ${scam.related_outage.is_correlated ? styles.scamCardCorrelated : ''}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`${styles.badge} ${getBadgeClass(scam.risk_level)}`}>{scam.risk_level}</span>
+                        {scam.related_outage.is_correlated && (
+                          <span className="text-xs text-orange-400 flex items-center gap-1">
+                            <ZapIcon className="w-3 h-3" /> Outage
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-300 line-clamp-2">{scam.content}</p>
+                      <div className="flex justify-between text-xs text-gray-500 mt-2">
+                        <span>{scam.spoofed_department}</span>
+                        <span className="flex items-center gap-1">
+                          <UsersIcon className="w-3 h-3" /> {scam.victim_reports}
                         </span>
-                      )}
+                      </div>
                     </div>
-                    <p className="text-sm text-light line-clamp-2 mb-2">{report.content}</p>
-                    <div className="flex items-center justify-between text-xs text-smoke">
-                      <span className="flex items-center gap-1">
-                        <Building2 className="w-3 h-3" />
-                        {report.spoofed_department}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {report.victim_reports} victims
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ─────────────────────────────────────────────────────────────
-            ZONE HEALTH + AGENTS
-            ───────────────────────────────────────────────────────────── */}
-        <div className="flex gap-6 mt-8">
           {/* Zone Health */}
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-base font-semibold text-light">Civic Health by Zone</h2>
-                <p className="text-sm text-smoke">Performance overview across Bengaluru</p>
-              </div>
-              <button className="btn-secondary text-sm py-2">
-                <BarChart3 className="w-4 h-4" />
-                Analytics
-              </button>
-            </div>
-
-            <div className="flex gap-3">
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-white mb-4">Civic Health by Zone</h2>
+            <div className={styles.zonesGrid}>
               {[
-                { zone: 'East', grade: 'C', score: 45.2, complaints: 1250, ghostOffices: 4 },
-                { zone: 'West', grade: 'B', score: 62.8, complaints: 980, ghostOffices: 2 },
-                { zone: 'North', grade: 'D', score: 38.5, complaints: 1450, ghostOffices: 5 },
-                { zone: 'South', grade: 'B', score: 71.3, complaints: 850, ghostOffices: 1 },
-                { zone: 'Central', grade: 'C', score: 55.9, complaints: 720, ghostOffices: 0 },
-              ].map((zone) => (
-                <div key={zone.zone} className="flex-1 zone-card">
+                { zone: 'East', grade: 'C', score: 45.2, complaints: 1250, ghosts: 4 },
+                { zone: 'West', grade: 'B', score: 62.8, complaints: 980, ghosts: 2 },
+                { zone: 'North', grade: 'D', score: 38.5, complaints: 1450, ghosts: 5 },
+                { zone: 'South', grade: 'B', score: 71.3, complaints: 850, ghosts: 1 },
+                { zone: 'Central', grade: 'C', score: 55.9, complaints: 720, ghosts: 0 },
+              ].map((z) => (
+                <div key={z.zone} className={styles.zoneCard}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`zone-grade ${zone.grade} w-10 h-10 text-base`}>{zone.grade}</div>
+                    <div className={`${styles.zoneGrade} ${getGradeColor(z.grade)}`}>{z.grade}</div>
                     <div>
-                      <p className="font-semibold text-light text-sm">{zone.zone}</p>
-                      <p className="text-xs text-smoke">{zone.score.toFixed(1)}</p>
+                      <div className="font-semibold text-white text-sm">{z.zone}</div>
+                      <div className="text-xs text-gray-500">{z.score.toFixed(1)}</div>
                     </div>
                   </div>
-                  <div className="space-y-1.5 text-xs">
+                  <div className="text-xs space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-smoke">Complaints</span>
-                      <span className="text-light font-mono">{zone.complaints.toLocaleString()}</span>
+                      <span className="text-gray-500">Complaints</span>
+                      <span className="text-gray-300 font-mono">{z.complaints}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-smoke">Ghost Offices</span>
-                      <span className={zone.ghostOffices > 0 ? 'text-danger font-mono' : 'text-safe font-mono'}>
-                        {zone.ghostOffices}
-                      </span>
+                      <span className="text-gray-500">Ghost Offices</span>
+                      <span className={z.ghosts > 0 ? 'text-red-400 font-mono' : 'text-green-400 font-mono'}>{z.ghosts}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* ─────────────────────────────────────────────────────────────
-            AGENT STATUS
-            ───────────────────────────────────────────────────────────── */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-base font-semibold text-light">OpenClaw Agents</h2>
-              <p className="text-sm text-smoke">AI-powered civic intelligence</p>
+          {/* Agents */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-white">OpenClaw Agents</h2>
+              <span className="text-sm text-green-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-400" />
+                2 running
+              </span>
             </div>
-            <span className="flex items-center gap-2 text-sm text-safe">
-              <Activity className="w-4 h-4" />
-              2 running
-            </span>
-          </div>
-
-          <div className="flex gap-4">
-            {[
-              { name: 'Ghost Hunter', desc: 'Detects unresponsive offices', status: 'running', tasks: 156, icon: Ghost, color: 'from-[hsl(270,65%,60%)] to-[hsl(300,60%,50%)]' },
-              { name: 'Scam Detector', desc: 'Analyzes fraud attempts', status: 'running', tasks: 234, icon: Shield, color: 'from-[hsl(0,72%,58%)] to-[hsl(25,90%,55%)]' },
-              { name: 'Escalation Tracer', desc: 'Maps complaint journeys', status: 'idle', tasks: 89, icon: Target, color: 'from-[hsl(205,85%,55%)] to-[hsl(185,70%,45%)]' },
-              { name: 'RTI Drafter', desc: 'Generates RTI applications', status: 'idle', tasks: 23, icon: FileText, color: 'from-[hsl(38,92%,55%)] to-[hsl(45,95%,50%)]' },
-            ].map((agent) => (
-              <div key={agent.name} className={`flex-1 agent-card ${agent.status}`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`agent-icon bg-gradient-to-br ${agent.color}`}>
-                    <agent.icon className="w-5 h-5 text-pure" />
+            <div className={styles.agentsGrid}>
+              {[
+                { name: 'Ghost Hunter', desc: 'Detects unresponsive offices', status: 'running', tasks: 156, color: 'from-purple-500 to-pink-500' },
+                { name: 'Scam Detector', desc: 'Analyzes fraud attempts', status: 'running', tasks: 234, color: 'from-red-500 to-orange-500' },
+                { name: 'Escalation Tracer', desc: 'Maps complaint journeys', status: 'idle', tasks: 89, color: 'from-blue-500 to-cyan-500' },
+                { name: 'RTI Drafter', desc: 'Generates RTI applications', status: 'idle', tasks: 23, color: 'from-yellow-500 to-orange-500' },
+              ].map((agent) => (
+                <div key={agent.name} className={`${styles.agentCard} ${agent.status === 'running' ? styles.agentRunning : ''}`}>
+                  <div className={`${styles.agentIcon} bg-gradient-to-br ${agent.color}`}>
+                    {agent.name === 'Ghost Hunter' && <GhostIcon />}
+                    {agent.name === 'Scam Detector' && <ShieldIcon />}
+                    {agent.name === 'Escalation Tracer' && <TargetIcon />}
+                    {agent.name === 'RTI Drafter' && <FileIcon />}
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    agent.status === 'running'
-                      ? 'bg-[hsl(152,60%,48%)]/15 text-safe'
-                      : 'bg-[hsl(220,12%,18%)] text-smoke'
-                  }`}>
+                  <div className={styles.agentName}>{agent.name}</div>
+                  <div className={styles.agentDesc}>{agent.desc}</div>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs text-gray-500">{agent.tasks} tasks</span>
+                    <button className="p-1.5 rounded hover:bg-[hsl(215,20%,20%)] text-gray-400 hover:text-white transition-colors">
+                      <PlayIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <span className={`${styles.agentStatus} ${agent.status === 'running' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
                     {agent.status}
                   </span>
                 </div>
-                <h3 className="font-semibold text-light text-sm mb-0.5">{agent.name}</h3>
-                <p className="text-xs text-smoke mb-3">{agent.desc}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-smoke">{agent.tasks} tasks</span>
-                  <button className="btn-ghost p-1.5 rounded">
-                    <Play className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
+        </div>
       </main>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          FOOTER
-          ═══════════════════════════════════════════════════════════════ */}
-      <footer className="border-t border-[hsl(220,12%,18%)] mt-12">
-        <div className="max-w-[1800px] mx-auto px-6 py-5">
-          <div className="flex items-center justify-between text-sm text-smoke">
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <div className={styles.maxWidth}>
+          <div className={styles.footerInner}>
             <div className="flex items-center gap-2">
-              <Ghost className="w-4 h-4 text-ghost" />
-              <span className="font-medium text-light">GhostOffice</span>
-              <span className="text-[hsl(220,12%,28%)]">v1.0.0</span>
-              <span className="mx-2 text-[hsl(220,12%,28%)]">·</span>
+              <GhostIcon className="w-4 h-4 text-purple-400" />
+              <span className="text-white font-medium">GhostOffice</span>
+              <span className="text-gray-600">v1.0.0</span>
+              <span className="mx-2 text-gray-700">•</span>
               <span>Powered by Elastic + AWS</span>
             </div>
-            <div className="flex items-center gap-6">
-              <a href="#" className="hover:text-light transition-colors">Docs</a>
-              <a href="#" className="hover:text-light transition-colors">API</a>
-              <a href="#" className="hover:text-light transition-colors flex items-center gap-1">
-                GitHub <ExternalLink className="w-3 h-3" />
-              </a>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-white transition-colors">Docs</a>
+              <a href="#" className="hover:text-white transition-colors">API</a>
+              <a href="#" className="hover:text-white transition-colors">GitHub</a>
             </div>
           </div>
         </div>
