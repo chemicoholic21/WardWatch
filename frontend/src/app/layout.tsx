@@ -1,13 +1,25 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'GhostOffice - Civic Observability Platform',
-  description: 'Elastic-Powered Civic Observability & Accountability Intelligence Platform for Bengaluru',
-  keywords: ['civic', 'observability', 'bengaluru', 'complaints', 'government', 'accountability'],
+  title: 'GhostOffice | Civic Intelligence Platform',
+  description: 'Elastic-Powered Civic Observability & Accountability Intelligence for Bengaluru',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -16,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={inter.className}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-noise antialiased">
         {children}
       </body>
     </html>
