@@ -9,300 +9,288 @@ export interface ScamAnalysisResult {
   scam_type: string;
   scam_category: string;
   spoofed_department: string | null;
-  indicators: RiskIndicator[];
+  indicators: Record<string, boolean>;
   scores: {
     urgency_language: number;
     financial_risk: number;
     impersonation: number;
     link_safety: number;
   };
+  matched_patterns: string[];
   explanation: string;
   recommended_action: string;
-  related_outage: {
-    is_correlated: boolean;
-    outage_id: string | null;
-    correlation_score: number;
-  };
-  similar_reports: number;
 }
 
-export interface RiskIndicator {
-  indicator: string;
-  category: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  weight: number;
-  description: string;
-  matched_pattern?: string;
-}
+// Scam detection patterns - AGGRESSIVE detection
+const PATTERNS = {
+  // Government department names (impersonation)
+  departments: [
+    { regex: /\b(bescom|bangalore electricity)\b/i, name: 'BESCOM', weight: 30 },
+    { regex: /\b(bbmp|bruhat bengaluru|municipal|corporation)\b/i, name: 'BBMP', weight: 30 },
+    { regex: /\b(bwssb|water supply|water board)\b/i, name: 'BWSSB', weight: 30 },
+    { regex: /\b(bda|bangalore development)\b/i, name: 'BDA', weight: 30 },
+    { regex: /\b(bmtc|bus transport)\b/i, name: 'BMTC', weight: 25 },
+    { regex: /\b(government|govt|karnataka|official)\b/i, name: 'Government', weight: 20 },
+  ],
 
-// Scam patterns database
-const SCAM_PATTERNS = {
+  // Urgency indicators
   urgency: [
-    { pattern: /immediate|immediately/i, weight: 15, description: 'Urgency language detected' },
-    { pattern: /urgent|urgently/i, weight: 15, description: 'Urgency language detected' },
-    { pattern: /last chance|final notice|final warning/i, weight: 20, description: 'Final notice pressure' },
-    { pattern: /within 24 hours|within 2 hours|today only/i, weight: 15, description: 'Time pressure' },
-    { pattern: /act now|act immediately|dont delay|don't delay/i, weight: 10, description: 'Call to immediate action' },
-    { pattern: /suspended|terminated|blocked|disconnected/i, weight: 20, description: 'Service threat' },
-    { pattern: /legal action|police|court|arrest/i, weight: 15, description: 'Legal threat' },
+    { regex: /\b(urgent|urgently|immediately|immediate)\b/i, weight: 25 },
+    { regex: /\b(last chance|final notice|final warning|last warning)\b/i, weight: 30 },
+    { regex: /\b(within \d+ hours?|today only|expires today|act now)\b/i, weight: 25 },
+    { regex: /\b(don'?t delay|time sensitive|limited time)\b/i, weight: 20 },
+    { regex: /\b(action required|response required|mandatory)\b/i, weight: 20 },
   ],
+
+  // Financial/payment indicators - CRITICAL
   financial: [
-    { pattern: /pay now|pay immediately|pay rs|pay ₹/i, weight: 20, description: 'Payment request' },
-    { pattern: /transfer money|send payment|make payment/i, weight: 20, description: 'Transfer request' },
-    { pattern: /bank account|account number/i, weight: 25, description: 'Banking details request' },
-    { pattern: /upi|gpay|phonepe|paytm/i, weight: 20, description: 'UPI payment request' },
-    { pattern: /otp|password|pin|cvv/i, weight: 35, description: 'Credential request - CRITICAL' },
-    { pattern: /fine|penalty|due amount/i, weight: 15, description: 'Fine/penalty mentioned' },
+    { regex: /\b(pay|payment|paid|paying)\b/i, weight: 35 },
+    { regex: /\b(rs\.?\s*\d+|₹\s*\d+|\d+\s*rupees?)\b/i, weight: 40 },
+    { regex: /\b(upi|gpay|phonepe|paytm|bhim)\b/i, weight: 35 },
+    { regex: /\b(bank account|account number|ifsc)\b/i, weight: 40 },
+    { regex: /\b(transfer|send money|deposit)\b/i, weight: 30 },
+    { regex: /\b(fine|penalty|dues?|outstanding|overdue)\b/i, weight: 25 },
+    { regex: /\b(bill|invoice|amount)\b/i, weight: 20 },
   ],
-  impersonation: [
-    { pattern: /bescom/i, weight: 20, department: 'BESCOM', description: 'BESCOM impersonation' },
-    { pattern: /bbmp|municipal corporation/i, weight: 20, department: 'BBMP', description: 'BBMP impersonation' },
-    { pattern: /bwssb|water department/i, weight: 20, department: 'BWSSB', description: 'BWSSB impersonation' },
-    { pattern: /karnataka government|govt of karnataka/i, weight: 15, description: 'Government impersonation' },
-    { pattern: /official notice|government notice/i, weight: 10, description: 'Official notice claim' },
+
+  // Credential theft - CRITICAL
+  credentials: [
+    { regex: /\b(otp|one time password)\b/i, weight: 50 },
+    { regex: /\b(password|passcode|pin)\b/i, weight: 45 },
+    { regex: /\b(cvv|card number|expiry)\b/i, weight: 50 },
+    { regex: /\b(verify|verification|kyc)\b/i, weight: 25 },
+    { regex: /\b(login|log in|sign in)\b/i, weight: 20 },
   ],
+
+  // Threat indicators
+  threats: [
+    { regex: /\b(disconnection|disconnect|cut off|terminate)\b/i, weight: 30 },
+    { regex: /\b(suspend|suspended|block|blocked)\b/i, weight: 30 },
+    { regex: /\b(legal action|court|police|arrest|fir)\b/i, weight: 35 },
+    { regex: /\b(penalty|fine|charges)\b/i, weight: 20 },
+  ],
+
+  // Suspicious links
   links: [
-    { pattern: /bit\.ly|tinyurl|goo\.gl|short\.link/i, weight: 35, description: 'URL shortener detected' },
-    { pattern: /\.xyz|\.top|\.click|\.info/i, weight: 25, description: 'Suspicious TLD' },
+    { regex: /bit\.ly|tinyurl|goo\.gl|short\.|t\.co/i, weight: 40 },
+    { regex: /\.xyz|\.top|\.click|\.info|\.online/i, weight: 35 },
+    { regex: /http:\/\//i, weight: 15 }, // non-HTTPS
+    { regex: /[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\./i, weight: 25 }, // suspicious subdomain patterns
+  ],
+
+  // Contact requests
+  contact: [
+    { regex: /\b(call|contact|reach|whatsapp)\s*(us|me|now)?\s*(\+91|91)?[\s-]?\d{10}\b/i, weight: 30 },
+    { regex: /\b\d{10}\b/i, weight: 15 }, // Phone number
+    { regex: /@(gmail|yahoo|hotmail|outlook)\./i, weight: 25 }, // Non-official email
   ],
 };
 
-// Official government domains
-const OFFICIAL_DOMAINS = [
-  'gov.in', 'nic.in', 'karnataka.gov.in',
-  'bescom.co.in', 'bescom.org',
-  'bbmp.gov.in', 'bbmp.kar.nic.in',
-  'bwssb.gov.in',
-  'rera.karnataka.gov.in',
-];
-
 export class TrustLensAnalyzer {
-  // Analyze content for scam indicators
   async analyzeContent(content: string, url?: string): Promise<ScamAnalysisResult> {
     const reportId = `SCAN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const contentLower = content.toLowerCase();
-    const indicators: RiskIndicator[] = [];
-
-    // Analyze urgency
-    let urgencyScore = 0;
-    for (const pattern of SCAM_PATTERNS.urgency) {
-      if (pattern.pattern.test(content)) {
-        urgencyScore += pattern.weight;
-        indicators.push({
-          indicator: 'URGENCY_LANGUAGE',
-          category: 'urgency',
-          severity: pattern.weight >= 20 ? 'high' : 'medium',
-          weight: pattern.weight,
-          description: pattern.description,
-          matched_pattern: content.match(pattern.pattern)?.[0],
-        });
-      }
-    }
-    urgencyScore = Math.min(urgencyScore, 100);
-
-    // Analyze financial risk
-    let financialScore = 0;
-    for (const pattern of SCAM_PATTERNS.financial) {
-      if (pattern.pattern.test(content)) {
-        financialScore += pattern.weight;
-        indicators.push({
-          indicator: 'FINANCIAL_RISK',
-          category: 'financial',
-          severity: pattern.weight >= 25 ? 'critical' : pattern.weight >= 20 ? 'high' : 'medium',
-          weight: pattern.weight,
-          description: pattern.description,
-          matched_pattern: content.match(pattern.pattern)?.[0],
-        });
-      }
-    }
-    financialScore = Math.min(financialScore, 100);
-
-    // Analyze impersonation
-    let impersonationScore = 0;
+    const matchedPatterns: string[] = [];
+    let totalScore = 0;
     let spoofedDepartment: string | null = null;
-    for (const pattern of SCAM_PATTERNS.impersonation) {
-      if (pattern.pattern.test(content)) {
-        impersonationScore += pattern.weight;
-        if ((pattern as any).department) {
-          spoofedDepartment = (pattern as any).department;
-        }
-        indicators.push({
-          indicator: 'IMPERSONATION',
-          category: 'impersonation',
-          severity: 'high',
-          weight: pattern.weight,
-          description: pattern.description,
-        });
+
+    const indicators: Record<string, boolean> = {
+      urgency_language: false,
+      payment_request: false,
+      government_impersonation: false,
+      credential_request: false,
+      threatening_language: false,
+      suspicious_link: false,
+      phone_number: false,
+    };
+
+    const scores = {
+      urgency_language: 0,
+      financial_risk: 0,
+      impersonation: 0,
+      link_safety: 100,
+    };
+
+    // Check for department impersonation
+    for (const dept of PATTERNS.departments) {
+      if (dept.regex.test(content)) {
+        scores.impersonation += dept.weight;
+        totalScore += dept.weight;
+        spoofedDepartment = dept.name;
+        indicators.government_impersonation = true;
+        matchedPatterns.push(`Department: ${dept.name}`);
       }
     }
-    impersonationScore = Math.min(impersonationScore, 100);
 
-    // Analyze link safety
-    let linkSafetyScore = 100;
-    if (url) {
-      try {
-        const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-        const domain = urlObj.hostname;
-
-        // Check if official domain
-        const isOfficial = OFFICIAL_DOMAINS.some(d => domain.endsWith(d));
-        if (!isOfficial) {
-          linkSafetyScore -= 30;
-          indicators.push({
-            indicator: 'NON_OFFICIAL_DOMAIN',
-            category: 'link',
-            severity: 'high',
-            weight: 30,
-            description: 'Non-government domain detected',
-          });
-
-          // Check for URL shorteners
-          for (const pattern of SCAM_PATTERNS.links) {
-            if (pattern.pattern.test(domain)) {
-              linkSafetyScore -= pattern.weight;
-              indicators.push({
-                indicator: 'SUSPICIOUS_LINK',
-                category: 'link',
-                severity: 'high',
-                weight: pattern.weight,
-                description: pattern.description,
-              });
-            }
-          }
-
-          // Check for impersonation in domain
-          if (/bescom|bbmp|bwssb|karnataka|bangalore/i.test(domain)) {
-            linkSafetyScore -= 40;
-            indicators.push({
-              indicator: 'DOMAIN_IMPERSONATION',
-              category: 'link',
-              severity: 'critical',
-              weight: 40,
-              description: 'Domain appears to impersonate official government website',
-            });
-          }
-        }
-
-        // Check HTTPS
-        if (urlObj.protocol !== 'https:') {
-          linkSafetyScore -= 10;
-          indicators.push({
-            indicator: 'NO_HTTPS',
-            category: 'link',
-            severity: 'medium',
-            weight: 10,
-            description: 'Connection is not secure (no HTTPS)',
-          });
-        }
-      } catch {
-        linkSafetyScore -= 20;
+    // Check urgency patterns
+    for (const pattern of PATTERNS.urgency) {
+      if (pattern.regex.test(content)) {
+        scores.urgency_language += pattern.weight;
+        totalScore += pattern.weight;
+        indicators.urgency_language = true;
+        const match = content.match(pattern.regex);
+        if (match) matchedPatterns.push(`Urgency: "${match[0]}"`);
       }
     }
-    linkSafetyScore = Math.max(0, linkSafetyScore);
 
-    // Calculate overall scam probability
-    const linkRisk = 100 - linkSafetyScore;
-    const scamProbability = Math.min(1,
-      (linkRisk * 0.35 + urgencyScore * 0.25 + financialScore * 0.25 + impersonationScore * 0.15) / 100
-    );
-    const trustScore = Math.max(0, 100 - scamProbability * 100);
+    // Check financial patterns - HEAVY weight
+    for (const pattern of PATTERNS.financial) {
+      if (pattern.regex.test(content)) {
+        scores.financial_risk += pattern.weight;
+        totalScore += pattern.weight;
+        indicators.payment_request = true;
+        const match = content.match(pattern.regex);
+        if (match) matchedPatterns.push(`Financial: "${match[0]}"`);
+      }
+    }
 
-    // Determine risk level
-    const riskLevel: 'critical' | 'high' | 'medium' | 'low' =
-      scamProbability > 0.8 ? 'critical' :
-      scamProbability > 0.6 ? 'high' :
-      scamProbability > 0.4 ? 'medium' : 'low';
+    // Check credential patterns - CRITICAL
+    for (const pattern of PATTERNS.credentials) {
+      if (pattern.regex.test(content)) {
+        scores.financial_risk += pattern.weight;
+        totalScore += pattern.weight;
+        indicators.credential_request = true;
+        const match = content.match(pattern.regex);
+        if (match) matchedPatterns.push(`Credential: "${match[0]}"`);
+      }
+    }
+
+    // Check threat patterns
+    for (const pattern of PATTERNS.threats) {
+      if (pattern.regex.test(content)) {
+        scores.urgency_language += pattern.weight;
+        totalScore += pattern.weight;
+        indicators.threatening_language = true;
+        const match = content.match(pattern.regex);
+        if (match) matchedPatterns.push(`Threat: "${match[0]}"`);
+      }
+    }
+
+    // Check link patterns
+    const combinedContent = content + (url || '');
+    for (const pattern of PATTERNS.links) {
+      if (pattern.regex.test(combinedContent)) {
+        scores.link_safety -= pattern.weight;
+        totalScore += pattern.weight;
+        indicators.suspicious_link = true;
+        matchedPatterns.push(`Link: suspicious URL pattern`);
+      }
+    }
+
+    // Check contact patterns
+    for (const pattern of PATTERNS.contact) {
+      if (pattern.regex.test(content)) {
+        totalScore += pattern.weight;
+        indicators.phone_number = true;
+        const match = content.match(pattern.regex);
+        if (match) matchedPatterns.push(`Contact: "${match[0]}"`);
+      }
+    }
+
+    // COMBO BONUS: If multiple red flags, increase score significantly
+    const flagCount = Object.values(indicators).filter(Boolean).length;
+    if (flagCount >= 3) {
+      totalScore += 30; // Combo bonus
+      matchedPatterns.push(`Multiple red flags detected (${flagCount})`);
+    }
+    if (flagCount >= 4) {
+      totalScore += 40; // Extra combo bonus
+    }
+
+    // Special case: Government + Payment = Almost certainly scam
+    if (indicators.government_impersonation && indicators.payment_request) {
+      totalScore += 50;
+      matchedPatterns.push(`CRITICAL: Government impersonation + payment request`);
+    }
+
+    // Special case: Urgency + Payment = Very suspicious
+    if (indicators.urgency_language && indicators.payment_request) {
+      totalScore += 30;
+      matchedPatterns.push(`ALERT: Urgency + payment request`);
+    }
+
+    // Calculate final scores
+    scores.link_safety = Math.max(0, scores.link_safety);
+    scores.urgency_language = Math.min(100, scores.urgency_language);
+    scores.financial_risk = Math.min(100, scores.financial_risk);
+    scores.impersonation = Math.min(100, scores.impersonation);
+
+    // Calculate scam probability (0 to 1)
+    // totalScore typically ranges from 0-300+ for scams
+    const scamProbability = Math.min(1, totalScore / 150);
+    const trustScore = Math.round((1 - scamProbability) * 100);
+
+    // Determine risk level with LOWER thresholds
+    let riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    if (scamProbability >= 0.7 || totalScore >= 100) {
+      riskLevel = 'critical';
+    } else if (scamProbability >= 0.5 || totalScore >= 70) {
+      riskLevel = 'high';
+    } else if (scamProbability >= 0.3 || totalScore >= 40) {
+      riskLevel = 'medium';
+    } else {
+      riskLevel = 'low';
+    }
 
     // Determine scam type
-    let scamType = 'GENERIC_PHISHING';
-    let scamCategory = 'PHISHING';
-    if (financialScore > 50) {
-      if (/bill|overdue|due/i.test(content)) {
-        scamType = 'FAKE_BILL';
-        scamCategory = 'FINANCIAL_FRAUD';
-      } else if (/refund/i.test(content)) {
-        scamType = 'REFUND_SCAM';
-        scamCategory = 'FINANCIAL_FRAUD';
-      }
-    } else if (/kyc|verify/i.test(content)) {
-      scamType = 'KYC_PHISHING';
-      scamCategory = 'IDENTITY_THEFT';
-    } else if (/lottery|prize|winner/i.test(content)) {
-      scamType = 'LOTTERY_SCAM';
-      scamCategory = 'ADVANCE_FEE_FRAUD';
-    } else if (/otp|password/i.test(content)) {
+    let scamType = 'SUSPICIOUS_MESSAGE';
+    let scamCategory = 'UNKNOWN';
+
+    if (indicators.credential_request) {
       scamType = 'CREDENTIAL_THEFT';
       scamCategory = 'IDENTITY_THEFT';
+    } else if (indicators.government_impersonation && indicators.payment_request) {
+      scamType = 'FAKE_GOVERNMENT_NOTICE';
+      scamCategory = 'IMPERSONATION_FRAUD';
+    } else if (indicators.payment_request) {
+      scamType = 'PAYMENT_FRAUD';
+      scamCategory = 'FINANCIAL_FRAUD';
+    } else if (indicators.government_impersonation) {
+      scamType = 'GOVERNMENT_IMPERSONATION';
+      scamCategory = 'IMPERSONATION_FRAUD';
+    } else if (indicators.threatening_language) {
+      scamType = 'THREAT_SCAM';
+      scamCategory = 'EXTORTION';
     }
 
     // Generate explanation
-    const explanation = this.generateExplanation(riskLevel, indicators, spoofedDepartment);
-    const recommendedAction = this.generateRecommendation(riskLevel, scamType);
-
-    // Check for outage correlation (simplified - in production, would query outages index)
-    const relatedOutage = {
-      is_correlated: false,
-      outage_id: null as string | null,
-      correlation_score: 0,
-    };
-
-    // Count similar reports (simplified)
-    const similarReports = Math.floor(Math.random() * 10);
+    const explanation = this.generateExplanation(riskLevel, matchedPatterns, spoofedDepartment);
+    const recommendedAction = this.generateRecommendation(riskLevel);
 
     return {
       report_id: reportId,
-      trust_score: Math.round(trustScore * 100) / 100,
+      trust_score: trustScore,
       scam_probability: Math.round(scamProbability * 1000) / 1000,
       risk_level: riskLevel,
       scam_type: scamType,
       scam_category: scamCategory,
       spoofed_department: spoofedDepartment,
       indicators,
-      scores: {
-        urgency_language: urgencyScore,
-        financial_risk: financialScore,
-        impersonation: impersonationScore,
-        link_safety: linkSafetyScore,
-      },
+      scores,
+      matched_patterns: matchedPatterns,
       explanation,
       recommended_action: recommendedAction,
-      related_outage: relatedOutage,
-      similar_reports: similarReports,
     };
   }
 
-  // Generate human-readable explanation
-  private generateExplanation(riskLevel: string, indicators: RiskIndicator[], spoofedDept: string | null): string {
-    const parts: string[] = [];
-
-    if (riskLevel === 'critical' || riskLevel === 'high') {
-      parts.push(`⚠️ HIGH RISK: This message shows strong signs of being a scam.`);
+  private generateExplanation(riskLevel: string, patterns: string[], dept: string | null): string {
+    if (riskLevel === 'critical') {
+      return `🚨 CRITICAL SCAM ALERT: This message is almost certainly a scam. ${dept ? `It impersonates ${dept}.` : ''} Detected: ${patterns.slice(0, 3).join(', ')}. DO NOT respond or click any links.`;
+    } else if (riskLevel === 'high') {
+      return `⚠️ HIGH RISK: This message shows strong scam indicators. ${dept ? `Claims to be from ${dept}.` : ''} Red flags: ${patterns.slice(0, 3).join(', ')}. Verify independently before any action.`;
     } else if (riskLevel === 'medium') {
-      parts.push(`⚡ CAUTION: This message has some suspicious characteristics.`);
+      return `⚡ CAUTION: This message has suspicious elements. ${patterns.slice(0, 2).join(', ')}. Do not share personal information or make payments without verification.`;
     } else {
-      parts.push(`✓ LOW RISK: This message appears relatively safe, but always verify independently.`);
+      return `✓ LOW RISK: No major scam indicators detected. However, always verify payment requests or sensitive information requests through official channels.`;
     }
-
-    if (spoofedDept) {
-      parts.push(`The message appears to impersonate ${spoofedDept}.`);
-    }
-
-    const criticalIndicators = indicators.filter(i => i.severity === 'critical');
-    if (criticalIndicators.length > 0) {
-      parts.push(`Critical warning: ${criticalIndicators.map(i => i.description).join(', ')}.`);
-    }
-
-    return parts.join(' ');
   }
 
-  // Generate actionable recommendation
-  private generateRecommendation(riskLevel: string, scamType: string): string {
+  private generateRecommendation(riskLevel: string): string {
     if (riskLevel === 'critical' || riskLevel === 'high') {
-      return `DO NOT click any links or share any information. Block this sender immediately. Report this scam to cybercrime.gov.in or call 1930. If you've shared any information, contact your bank immediately.`;
+      return `1. DO NOT click any links or call numbers in this message. 2. Block the sender. 3. Report to cybercrime.gov.in or call 1930. 4. If you shared any info, contact your bank immediately.`;
     } else if (riskLevel === 'medium') {
-      return `Exercise caution. Verify this message by contacting the official department directly through their website (look up the number independently, don't use numbers from this message). Do not click links or share OTP/passwords.`;
+      return `1. Do not respond directly. 2. Verify by calling the official helpline (find it independently, not from this message). 3. Never share OTP, password, or bank details.`;
     } else {
-      return `This message appears legitimate, but always verify payment requests or personal information requests by contacting the official department directly.`;
+      return `This appears safe, but always verify payment/info requests through official websites or helplines.`;
     }
   }
 
@@ -323,10 +311,13 @@ export class TrustLensAnalyzer {
       victim_reports: 0,
     };
 
-    await esService.index(ES_INDICES.SCAM_REPORTS, report, {
-      id: analysis.report_id,
-      pipeline: 'scam-detection-pipeline',
-    });
+    try {
+      await esService.index(ES_INDICES.SCAM_REPORTS, report, {
+        id: analysis.report_id,
+      });
+    } catch (e) {
+      console.error('Failed to store report:', e);
+    }
 
     return analysis;
   }
@@ -367,41 +358,36 @@ export class TrustLensAnalyzer {
       by_scam_type: { terms: { field: 'scam_type' } },
       by_department: { terms: { field: 'spoofed_department' } },
       outage_correlated: { filter: { term: { is_outage_correlated: true } } },
-      daily_trend: {
-        date_histogram: {
-          field: 'reported_at',
-          calendar_interval: 'day',
-        },
-      },
     };
 
-    const result = await esService.aggregate(ES_INDICES.SCAM_REPORTS, aggs, query);
-    const total = await esService.count(ES_INDICES.SCAM_REPORTS, query);
+    try {
+      const result = await esService.aggregate(ES_INDICES.SCAM_REPORTS, aggs, query);
+      const total = await esService.count(ES_INDICES.SCAM_REPORTS, query);
 
-    // Calculate trend
-    const dailyBuckets = result.daily_trend?.buckets || [];
-    let trend: 'increasing' | 'stable' | 'decreasing' = 'stable';
-    if (dailyBuckets.length >= 7) {
-      const recent = dailyBuckets.slice(-3).reduce((s: number, b: any) => s + b.doc_count, 0);
-      const earlier = dailyBuckets.slice(-7, -3).reduce((s: number, b: any) => s + b.doc_count, 0);
-      if (recent > earlier * 1.2) trend = 'increasing';
-      else if (recent < earlier * 0.8) trend = 'decreasing';
+      return {
+        total_reports: total,
+        by_risk_level: Object.fromEntries(
+          (result.by_risk_level?.buckets || []).map((b: any) => [b.key, b.doc_count])
+        ),
+        by_scam_type: Object.fromEntries(
+          (result.by_scam_type?.buckets || []).map((b: any) => [b.key, b.doc_count])
+        ),
+        by_department: Object.fromEntries(
+          (result.by_department?.buckets || []).filter((b: any) => b.key).map((b: any) => [b.key, b.doc_count])
+        ),
+        outage_correlated: result.outage_correlated?.doc_count || 0,
+        trend_7d: 'stable',
+      };
+    } catch (e) {
+      return {
+        total_reports: 0,
+        by_risk_level: {},
+        by_scam_type: {},
+        by_department: {},
+        outage_correlated: 0,
+        trend_7d: 'stable',
+      };
     }
-
-    return {
-      total_reports: total,
-      by_risk_level: Object.fromEntries(
-        (result.by_risk_level?.buckets || []).map((b: any) => [b.key, b.doc_count])
-      ),
-      by_scam_type: Object.fromEntries(
-        (result.by_scam_type?.buckets || []).map((b: any) => [b.key, b.doc_count])
-      ),
-      by_department: Object.fromEntries(
-        (result.by_department?.buckets || []).filter((b: any) => b.key).map((b: any) => [b.key, b.doc_count])
-      ),
-      outage_correlated: result.outage_correlated?.doc_count || 0,
-      trend_7d: trend,
-    };
   }
 }
 

@@ -106,14 +106,24 @@ app.use((req, res) => {
 
 // Start server
 async function startServer() {
+  let esConnected = false;
+  let esVersion = 'N/A';
+
+  // Try to connect to Elasticsearch (optional)
   try {
-    // Test Elasticsearch connection
     const esClient = getElasticsearchClient();
     const esInfo = await esClient.info();
-    console.log(`✓ Connected to Elasticsearch: ${esInfo.name} (${esInfo.version.number})`);
+    esConnected = true;
+    esVersion = esInfo.version.number;
+    console.log(`✓ Connected to Elasticsearch: ${esInfo.name} (${esVersion})`);
+  } catch (error: any) {
+    console.warn(`⚠ Elasticsearch not available: ${error.message}`);
+    console.warn('  Server will start but ES-dependent endpoints will fail.');
+    console.warn('  TrustLens /analyze endpoint will still work for scam detection.');
+  }
 
-    app.listen(config.port, () => {
-      console.log(`
+  app.listen(config.port, () => {
+    console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
 ║   🏛️  GhostOffice API Server                                  ║
@@ -123,7 +133,7 @@ async function startServer() {
 ║                                                               ║
 ║   🌐 Server:     http://localhost:${config.port}                    ║
 ║   📊 Mode:       ${config.nodeEnv.padEnd(11)}                            ║
-║   🔍 Elastic:    Connected                                    ║
+║   🔍 Elastic:    ${esConnected ? 'Connected (' + esVersion + ')' : 'Not Connected (limited mode)'}${esConnected ? ''.padEnd(Math.max(0, 16 - esVersion.length)) : ''}║
 ║   🤖 Bedrock:    ${config.features.enableBedrock ? 'Enabled ' : 'Disabled'}                                   ║
 ║                                                               ║
 ║   📋 Endpoints:                                               ║
@@ -135,12 +145,8 @@ async function startServer() {
 ║      • /api/actions         - Actionable outputs              ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
-      `);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+    `);
+  });
 }
 
 startServer();
