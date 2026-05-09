@@ -1,0 +1,209 @@
+{
+  "description": "Process and enrich civic events with risk scoring, geo enrichment, and calculated fields",
+  "processors": [
+    {
+      "set": {
+        "field": "ingested_at",
+        "value": "{{_ingest.timestamp}}"
+      }
+    },
+    {
+      "set": {
+        "field": "event_type",
+        "value": "complaint",
+        "if": "ctx.event_type == null"
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate days_open based on status and dates",
+        "lang": "painless",
+        "source": """
+          if (ctx.status != 'resolved' && ctx.status != 'closed') {
+            if (ctx.created_at != null) {
+              ZonedDateTime created = ZonedDateTime.parse(ctx.created_at);
+              ZonedDateTime now = ZonedDateTime.now();
+              ctx.days_open = ChronoUnit.DAYS.between(created, now);
+              ctx.is_overdue = ctx.days_open > 14;
+            }
+          } else {
+            if (ctx.created_at != null && ctx.resolved_at != null) {
+              ZonedDateTime created = ZonedDateTime.parse(ctx.created_at);
+              ZonedDateTime resolved = ZonedDateTime.parse(ctx.resolved_at);
+              ctx.days_open = ChronoUnit.DAYS.between(created, resolved);
+            } else {
+              ctx.days_open = 0;
+            }
+            ctx.is_overdue = false;
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate risk_score based on multiple factors",
+        "lang": "painless",
+        "source": """
+          double score = 0.0;
+
+          // Days open factor (max 30 points)
+          if (ctx.days_open != null) {
+            if (ctx.days_open > 30) {
+              score += 30;
+            } else if (ctx.days_open > 21) {
+              score += 25;
+            } else if (ctx.days_open > 14) {
+              score += 20;
+            } else if (ctx.days_open > 7) {
+              score += 10;
+            } else if (ctx.days_open > 3) {
+              score += 5;
+            }
+          }
+
+          // Escalation count factor (max 25 points)
+          if (ctx.escalation_count != null) {
+            if (ctx.escalation_count > 5) {
+              score += 25;
+            } else if (ctx.escalation_count > 3) {
+              score += 20;
+            } else if (ctx.escalation_count > 1) {
+              score += 15;
+            } else if (ctx.escalation_count > 0) {
+              score += 5;
+            }
+          }
+
+          // Transfer count factor (max 20 points)
+          if (ctx.transfer_count != null) {
+            if (ctx.transfer_count > 3) {
+              score += 20;
+            } else if (ctx.transfer_count > 2) {
+              score += 15;
+            } else if (ctx.transfer_count > 1) {
+              score += 10;
+            } else if (ctx.transfer_count > 0) {
+              score += 5;
+            }
+          }
+
+          // Priority factor (max 25 points)
+          if (ctx.priority != null) {
+            if (ctx.priority == 'critical') {
+              score += 25;
+            } else if (ctx.priority == 'high') {
+              score += 15;
+            } else if (ctx.priority == 'medium') {
+              score += 5;
+            }
+          }
+
+          ctx.risk_score = Math.min(score, 100);
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Detect suspicious closure patterns",
+        "lang": "painless",
+        "source": """
+          ctx.is_suspicious_closure = false;
+          ctx.closure_quality_score = 100.0;
+
+          if (ctx.status == 'resolved' || ctx.status == 'closed') {
+            double quality = 100.0;
+
+            // Quick closure with high escalations is suspicious
+            if (ctx.days_open != null && ctx.days_open < 2 && ctx.escalation_count != null && ctx.escalation_count > 2) {
+              ctx.is_suspicious_closure = true;
+              quality -= 40;
+            }
+
+            // Closed without resolution notes
+            if (ctx.resolution_notes == null || ctx.resolution_notes == '') {
+              quality -= 20;
+            }
+
+            // High priority closed very quickly
+            if (ctx.priority == 'critical' && ctx.days_open != null && ctx.days_open < 1) {
+              ctx.is_suspicious_closure = true;
+              quality -= 30;
+            }
+
+            ctx.closure_quality_score = Math.max(quality, 0);
+          }
+        """
+      }
+    },
+    {
+      "script": {
+        "description": "Calculate ghost contribution score",
+        "lang": "painless",
+        "source": """
+          double ghost_score = 0.0;
+
+          // Stagnation contribution
+          if (ctx.status != 'resolved' && ctx.status != 'closed' && ctx.days_open != null && ctx.days_open > 14) {
+            ghost_score += Math.min(ctx.days_open / 60.0 * 40, 40);
+          }
+
+          // Escalation loop contribution
+          if (ctx.escalation_count != null && ctx.escalation_count > 2) {
+            ghost_score += Math.min(ctx.escalation_count * 8, 30);
+          }
+
+          // Transfer contribution
+          if (ctx.transfer_count != null && ctx.transfer_count > 1) {
+            ghost_score += Math.min(ctx.transfer_count * 10, 20);
+          }
+
+          // Suspicious closure
+          if (ctx.is_suspicious_closure == true) {
+            ghost_score += 10;
+          }
+
+          ctx.ghost_contribution_score = Math.min(ghost_score, 100);
+        """
+      }
+    },
+    {
+      "set": {
+        "field": "updated_at",
+        "value": "{{_ingest.timestamp}}",
+        "if": "ctx.updated_at == null"
+      }
+    },
+    {
+      "lowercase": {
+        "field": "status",
+        "ignore_missing": true
+      }
+    },
+    {
+      "lowercase": {
+        "field": "priority",
+        "ignore_missing": true
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "_index",
+        "value": "civic-events-failed"
+      }
+    },
+    {
+      "set": {
+        "field": "error.message",
+        "value": "{{_ingest.on_failure_message}}"
+      }
+    },
+    {
+      "set": {
+        "field": "error.processor",
+        "value": "{{_ingest.on_failure_processor_type}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "settings": {
+    "number_of_shards": 2,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "trace_id": {
+        "type": "keyword"
+      },
+      "complaint_id": {
+        "type": "keyword"
+      },
+      "complaint_title": {
+        "type": "text"
+      },
+      "citizen_id": {
+        "type": "keyword"
+      },
+      "start_time": {
+        "type": "date"
+      },
+      "end_time": {
+        "type": "date"
+      },
+      "duration_hours": {
+        "type": "float"
+      },
+      "duration_days": {
+        "type": "float"
+      },
+      "status": {
+        "type": "keyword"
+      },
+      "is_resolved": {
+        "type": "boolean"
+      },
+      "resolution_type": {
+        "type": "keyword"
+      },
+      "total_hops": {
+        "type": "integer"
+      },
+      "unique_departments": {
+        "type": "integer"
+      },
+      "departments_involved": {
+        "type": "keyword"
+      },
+      "has_circular_path": {
+        "type": "boolean"
+      },
+      "circular_path_departments": {
+        "type": "keyword"
+      },
+      "circular_count": {
+        "type": "integer"
+      },
+      "is_dead_end": {
+        "type": "boolean"
+      },
+      "dead_end_department": {
+        "type": "keyword"
+      },
+      "dead_end_duration_hours": {
+        "type": "float"
+      },
+      "spans": {
+        "type": "nested",
+        "properties": {
+          "span_id": { "type": "keyword" },
+          "parent_span_id": { "type": "keyword" },
+          "sequence": { "type": "integer" },
+          "department": { "type": "keyword" },
+          "department_name": { "type": "text" },
+          "ward_id": { "type": "keyword" },
+          "action": { "type": "keyword" },
+          "action_description": { "type": "text" },
+          "start_time": { "type": "date" },
+          "end_time": { "type": "date" },
+          "duration_hours": { "type": "float" },
+          "wait_time_hours": { "type": "float" },
+          "processing_time_hours": { "type": "float" },
+          "officer_id": { "type": "keyword" },
+          "officer_name": { "type": "text" },
+          "status": { "type": "keyword" },
+          "notes": { "type": "text" },
+          "is_bottleneck": { "type": "boolean" },
+          "bottleneck_reason": { "type": "keyword" },
+          "geo_location": { "type": "geo_point" }
+        }
+      },
+      "bottleneck_department": {
+        "type": "keyword"
+      },
+      "bottleneck_wait_hours": {
+        "type": "float"
+      },
+      "bottleneck_count": {
+        "type": "integer"
+      },
+      "accountability_gaps": {
+        "type": "nested",
+        "properties": {
+          "gap_id": { "type": "keyword" },
+          "gap_type": { "type": "keyword" },
+          "department": { "type": "keyword" },
+          "description": { "type": "text" },
+          "severity": { "type": "keyword" },
+          "duration_hours": { "type": "float" },
+          "detected_at": { "type": "date" }
+        }
+      },
+      "geo_path": {
+        "type": "geo_shape"
+      },
+      "start_location": {
+        "type": "geo_point"
+      },
+      "end_location": {
+        "type": "geo_point"
+      },
+      "recommendation_generated": {
+        "type": "boolean"
+      },
+      "recommendation": {
+        "type": "object",
+        "properties": {
+          "next_action": { "type": "text" },
+          "authority": { "type": "keyword" },
+          "contact": { "type": "keyword" },
+          "priority": { "type": "keyword" },
+          "generated_at": { "type": "date" }
+        }
+      },
+      "complexity_score": {
+        "type": "float"
+      },
+      "efficiency_score": {
+        "type": "float"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "updated_at": {
+        "type": "date"
+      }
+    }
+  }
+}

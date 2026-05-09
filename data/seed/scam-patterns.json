@@ -1,0 +1,126 @@
+{
+  "scam_templates": [
+    {
+      "type": "BESCOM_FAKE_BILL",
+      "category": "FINANCIAL_FRAUD",
+      "department": "BESCOM",
+      "templates": [
+        "Dear Customer, Your BESCOM electricity bill of ₹{amount} is overdue. Pay immediately to avoid disconnection. Click: {url}",
+        "BESCOM Alert: Your connection will be disconnected today due to pending bill ₹{amount}. Pay now: {url}",
+        "Urgent: BESCOM bill payment of Rs.{amount} pending. Last date today. Avoid disconnection: {url}",
+        "Your BESCOM meter reading shows ₹{amount} due. Immediate payment required to continue service. {url}",
+        "BESCOM Notice: Consumer ID {consumer_id} - Bill overdue ₹{amount}. Service disconnection scheduled. Pay: {url}"
+      ],
+      "risk_weight": 0.85
+    },
+    {
+      "type": "BBMP_TAX_SCAM",
+      "category": "FINANCIAL_FRAUD",
+      "department": "BBMP",
+      "templates": [
+        "BBMP Notice: Property tax penalty of ₹{amount} due. Clear within 24 hours or face legal action: {url}",
+        "Urgent: Your BBMP property tax is overdue. Pay ₹{amount} immediately to avoid seizure. {url}",
+        "BBMP Alert: PID {property_id} - Tax demand of Rs.{amount}. Pay before court notice issued. {url}",
+        "Final Notice from BBMP: Property tax dues ₹{amount}. Legal action will be initiated. Pay now: {url}",
+        "Your property khata has been flagged for unpaid BBMP tax ₹{amount}. Clear dues: {url}"
+      ],
+      "risk_weight": 0.80
+    },
+    {
+      "type": "BWSSB_KYC_SCAM",
+      "category": "IDENTITY_THEFT",
+      "department": "BWSSB",
+      "templates": [
+        "BWSSB Alert: Update your KYC to continue water supply. Click here: {url}",
+        "Your BWSSB connection requires KYC verification. Complete within 24 hours to avoid disconnection: {url}",
+        "BWSSB Notice: Consumer ID {consumer_id} - KYC expired. Update immediately: {url}",
+        "Water supply will be stopped if KYC not updated. BWSSB portal: {url}",
+        "Mandatory BWSSB KYC update required for all consumers. Verify your details: {url}"
+      ],
+      "risk_weight": 0.75
+    },
+    {
+      "type": "LOTTERY_SCAM",
+      "category": "ADVANCE_FEE_FRAUD",
+      "department": null,
+      "templates": [
+        "Congratulations! You won ₹{amount} in Karnataka State Lottery. Claim now: {url}",
+        "Dear Winner! Your mobile number selected for ₹{amount} prize. Claim before {date}: {url}",
+        "LUCKY DRAW: You have won Rs.{amount} cash prize! Verify and claim: {url}",
+        "KBC Lottery: You won ₹{amount}. Call {phone} or visit {url} to claim your prize",
+        "Government of Karnataka Lottery: ₹{amount} credited to your account. Verify: {url}"
+      ],
+      "risk_weight": 0.90
+    },
+    {
+      "type": "OTP_PHISHING",
+      "category": "IDENTITY_THEFT",
+      "department": null,
+      "templates": [
+        "Your {department} account will be suspended. Share OTP sent to your number to verify.",
+        "Security Alert: Unusual activity on your {department} account. Verify by sharing OTP: {phone}",
+        "Your {department} payment of ₹{amount} is pending. Share OTP to complete transaction.",
+        "{department} customer care calling. We need your OTP to process refund of ₹{amount}",
+        "Your {department} connection details being updated. Please share OTP for verification."
+      ],
+      "risk_weight": 0.95
+    },
+    {
+      "type": "REFUND_SCAM",
+      "category": "FINANCIAL_FRAUD",
+      "department": null,
+      "templates": [
+        "{department} Refund: ₹{amount} approved for your account. Click to claim: {url}",
+        "Your {department} excess payment of Rs.{amount} is ready for refund. Process here: {url}",
+        "REFUND ALERT: {department} has processed ₹{amount} refund. Verify bank details: {url}",
+        "Dear Customer, your {department} refund of ₹{amount} is pending. Complete KYC: {url}",
+        "{department} billing error - ₹{amount} overcharged. Claim refund now: {url}"
+      ],
+      "risk_weight": 0.85
+    },
+    {
+      "type": "SERVICE_THREAT",
+      "category": "INTIMIDATION_FRAUD",
+      "department": null,
+      "templates": [
+        "URGENT: Your {department} service will be terminated today. Call immediately: {phone}",
+        "{department} ALERT: Connection blocked due to verification failure. Restore now: {url}",
+        "Legal notice from {department}: Non-payment of dues. Court case filing in 24 hours unless cleared.",
+        "{department}: Your consumer account suspended. Contact helpline {phone} with OTP to reactivate.",
+        "FINAL WARNING: {department} services will be permanently disconnected. Act now: {url}"
+      ],
+      "risk_weight": 0.80
+    },
+    {
+      "type": "JOB_SCAM",
+      "category": "ADVANCE_FEE_FRAUD",
+      "department": "BBMP",
+      "templates": [
+        "BBMP Recruitment 2024: Apply for {position} post. Salary ₹{amount}/month. Register: {url}",
+        "Karnataka Government Jobs: {count} vacancies in {department}. Apply before {date}: {url}",
+        "Direct recruitment in {department}. No exam required. Pay ₹{amount} registration fee: {url}",
+        "URGENT: Last 10 seats for {department} jobs. Interview call: {phone}",
+        "{department} walk-in interview on {date}. Registration fee ₹{amount}. Confirm: {url}"
+      ],
+      "risk_weight": 0.70
+    }
+  ],
+  "risk_indicators": [
+    {"indicator": "SHORTENED_URL", "description": "URL shortener used (bit.ly, tinyurl, etc.)", "weight": 0.30, "severity": "high"},
+    {"indicator": "NON_GOV_DOMAIN", "description": "Not a .gov.in or official domain", "weight": 0.35, "severity": "high"},
+    {"indicator": "URGENCY_LANGUAGE", "description": "Urgent/Immediate action demanded", "weight": 0.25, "severity": "medium"},
+    {"indicator": "PAYMENT_REQUEST", "description": "Direct payment link or UPI request", "weight": 0.30, "severity": "high"},
+    {"indicator": "OTP_REQUEST", "description": "Asking for OTP or password", "weight": 0.40, "severity": "critical"},
+    {"indicator": "THREAT_LANGUAGE", "description": "Legal/disconnection threats", "weight": 0.20, "severity": "medium"},
+    {"indicator": "IMPERSONATION", "description": "Impersonating government department", "weight": 0.35, "severity": "high"},
+    {"indicator": "UNUSUAL_AMOUNT", "description": "Suspicious amount mentioned", "weight": 0.15, "severity": "low"},
+    {"indicator": "PHONE_NUMBER", "description": "Non-official phone number provided", "weight": 0.20, "severity": "medium"},
+    {"indicator": "GRAMMAR_ERRORS", "description": "Poor grammar or spelling", "weight": 0.10, "severity": "low"}
+  ],
+  "outage_correlation": {
+    "description": "Scams often spike during real outages when citizens are vulnerable",
+    "correlation_window_hours": 24,
+    "departments_targeted": ["BESCOM", "BWSSB"],
+    "spike_multiplier": 3.5
+  }
+}
