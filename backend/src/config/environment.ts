@@ -7,7 +7,15 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:4000',
 
-  // Elasticsearch
+  // MongoDB (primary datastore — replaces the old Elasticsearch backend)
+  mongo: {
+    uri: process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017',
+    dbName: process.env.MONGO_DB || 'wardwatch',
+  },
+
+  // Elasticsearch — retained for backwards compatibility with code that
+  // still imports `config.elasticsearch`. Reading any of these does
+  // nothing useful now; the live datastore is `config.mongo`.
   elasticsearch: {
     cloudId: process.env.ES_CLOUD_ID || '',
     apiKey: process.env.ES_API_KEY || '',

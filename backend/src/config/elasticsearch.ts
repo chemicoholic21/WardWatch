@@ -1,40 +1,25 @@
-import { Client } from '@elastic/elasticsearch';
-import { config } from './environment.js';
+/**
+ * Backwards-compatibility shim.
+ *
+ * The project originally targeted Elasticsearch; we've migrated to
+ * MongoDB. To keep route and service imports unchanged, this module
+ * re-exports the MongoDB collection/pipeline constants under the
+ * historical `ES_*` names.
+ *
+ * `getElasticsearchClient` is retained as a no-op alias for the Mongo
+ * client so the few callers that ping for liveness still compile —
+ * prefer `getMongoClient` / `getDb` for new code.
+ */
 
-let esClient: Client | null = null;
+import { COLLECTIONS, PIPELINES, getMongoClient } from './mongodb.js';
 
-export function getElasticsearchClient(): Client {
-  if (esClient) return esClient;
-
-  // Use Cloud ID if available, otherwise use node URL
-  if (config.elasticsearch.cloudId && config.elasticsearch.apiKey) {
-    esClient = new Client({
-      cloud: { id: config.elasticsearch.cloudId },
-      auth: { apiKey: config.elasticsearch.apiKey },
-    });
-  } else {
-    esClient = new Client({
-      node: config.elasticsearch.node,
-    });
-  }
-
-  return esClient;
-}
-
-export const ES_INDICES = {
-  CIVIC_EVENTS: 'civic-events',
-  GHOST_OFFICES: 'ghost-offices',
-  SCAM_REPORTS: 'scam-reports',
-  ESCALATION_TRACES: 'escalation-traces',
-  WARD_METRICS: 'ward-metrics',
-  CIVIC_VECTORS: 'civic-vectors',
-} as const;
-
-export const ES_PIPELINES = {
-  CIVIC_EVENT: 'civic-event-pipeline',
-  SCAM_DETECTION: 'scam-detection-pipeline',
-  GEO_ENRICHMENT: 'geo-enrichment-pipeline',
-} as const;
+export const ES_INDICES = COLLECTIONS;
+export const ES_PIPELINES = PIPELINES;
 
 export type ESIndex = typeof ES_INDICES[keyof typeof ES_INDICES];
 export type ESPipeline = typeof ES_PIPELINES[keyof typeof ES_PIPELINES];
+
+/** @deprecated Use `getMongoClient` / `getDb` from `./mongodb` instead. */
+export function getElasticsearchClient() {
+  return getMongoClient();
+}

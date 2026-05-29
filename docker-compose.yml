@@ -1,34 +1,40 @@
 version: '3.8'
 
 services:
-  # Local Elasticsearch (for development - use Elastic Cloud for production)
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
-    container_name: ghostoffice-es
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+  # MongoDB — replaces the previous Elasticsearch backend.
+  # Pin to a recent stable LTS so docker-compose works the same locally
+  # as on a fresh CI machine.
+  mongo:
+    image: mongo:7.0
+    container_name: wardwatch-mongo
+    restart: unless-stopped
     ports:
-      - "9200:9200"
+      - "27017:27017"
+    environment:
+      # Local dev only — Atlas handles auth in production.
+      - MONGO_INITDB_DATABASE=wardwatch
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - mongo_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
       retries: 5
 
-  # Local Kibana (for development)
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.0
-    container_name: ghostoffice-kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  # Mongo Express — lightweight web UI for browsing collections
+  # (replaces the old Kibana dashboard for local exploration).
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: wardwatch-mongo-ui
+    restart: unless-stopped
     ports:
-      - "5601:5601"
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH=false
     depends_on:
-      elasticsearch:
+      mongo:
         condition: service_healthy
 
   # Backend API
@@ -36,14 +42,15 @@ services:
     build:
       context: ./backend
       dockerfile: ../infrastructure/docker/Dockerfile.backend
-    container_name: ghostoffice-backend
+    container_name: wardwatch-backend
     ports:
       - "4000:4000"
     environment:
       - NODE_ENV=development
-      - ES_NODE=http://elasticsearch:9200
+      - MONGO_URI=mongodb://mongo:27017
+      - MONGO_DB=wardwatch
     depends_on:
-      elasticsearch:
+      mongo:
         condition: service_healthy
     volumes:
       - ./backend:/app
@@ -54,7 +61,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ../infrastructure/docker/Dockerfile.frontend
-    container_name: ghostoffice-frontend
+    container_name: wardwatch-frontend
     ports:
       - "3000:3000"
     environment:
@@ -67,9 +74,9 @@ services:
       - /app/.next
 
 volumes:
-  es_data:
+  mongo_data:
     driver: local
 
 networks:
   default:
-    name: ghostoffice-network
+    name: wardwatch-network

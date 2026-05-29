@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
-import { getElasticsearchClient } from '../../config/elasticsearch.js';
+import { getDb, getMongoClient, COLLECTIONS } from '../../config/mongodb.js';
 
 const router = Router();
 
 // Basic health check
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const esClient = getElasticsearchClient();
-    const esHealth = await esClient.cluster.health();
+    const db = await getDb();
+    const ping = await db.command({ ping: 1 });
 
     res.json({
       status: 'healthy',
@@ -17,11 +17,9 @@ router.get('/', async (req: Request, res: Response) => {
           status: 'healthy',
           uptime: process.uptime(),
         },
-        elasticsearch: {
-          status: esHealth.status,
-          cluster_name: esHealth.cluster_name,
-          number_of_nodes: esHealth.number_of_nodes,
-          active_shards: esHealth.active_shards,
+        mongodb: {
+          status: ping.ok === 1 ? 'green' : 'yellow',
+          database: db.databaseName,
         },
       },
     });
@@ -34,44 +32,40 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Detailed health check
+// Detailed health check — includes per-collection doc counts so we can
+// quickly tell whether the database has been seeded.
 router.get('/detailed', async (req: Request, res: Response) => {
   try {
-    const esClient = getElasticsearchClient();
+    const db = await getDb();
+    const client = getMongoClient();
 
-    const [clusterHealth, clusterStats, nodesInfo] = await Promise.all([
-      esClient.cluster.health(),
-      esClient.cluster.stats(),
-      esClient.nodes.info(),
+    const [serverStatus, collectionCounts] = await Promise.all([
+      db.command({ serverStatus: 1 }).catch(() => null),
+      Promise.all(
+        Object.values(COLLECTIONS).map(async name => ({
+          name,
+          count: await db.collection(name).estimatedDocumentCount().catch(() => 0),
+        })),
+      ),
     ]);
 
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       application: {
-        name: 'GhostOffice API',
+        name: 'WardWatch API',
         version: '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         uptime_seconds: process.uptime(),
         memory: process.memoryUsage(),
       },
-      elasticsearch: {
-        health: {
-          status: clusterHealth.status,
-          cluster_name: clusterHealth.cluster_name,
-          number_of_nodes: clusterHealth.number_of_nodes,
-          active_primary_shards: clusterHealth.active_primary_shards,
-          active_shards: clusterHealth.active_shards,
-          relocating_shards: clusterHealth.relocating_shards,
-          initializing_shards: clusterHealth.initializing_shards,
-          unassigned_shards: clusterHealth.unassigned_shards,
-        },
-        stats: {
-          indices_count: clusterStats.indices?.count || 0,
-          docs_count: clusterStats.indices?.docs?.count || 0,
-          store_size: clusterStats.indices?.store?.size_in_bytes || 0,
-        },
-        nodes: Object.keys(nodesInfo.nodes || {}).length,
+      mongodb: {
+        database: db.databaseName,
+        connection: client ? 'connected' : 'disconnected',
+        host: serverStatus?.host ?? null,
+        version: serverStatus?.version ?? null,
+        collections: collectionCounts,
+        total_docs: collectionCounts.reduce((acc, c) => acc + (c.count ?? 0), 0),
       },
     });
   } catch (error: any) {
@@ -86,13 +80,9 @@ router.get('/detailed', async (req: Request, res: Response) => {
 // Readiness check
 router.get('/ready', async (req: Request, res: Response) => {
   try {
-    const esClient = getElasticsearchClient();
-    await esClient.ping();
-
-    res.json({
-      ready: true,
-      timestamp: new Date().toISOString(),
-    });
+    const db = await getDb();
+    await db.command({ ping: 1 });
+    res.json({ ready: true, timestamp: new Date().toISOString() });
   } catch (error: any) {
     res.status(503).json({
       ready: false,
@@ -102,7 +92,7 @@ router.get('/ready', async (req: Request, res: Response) => {
   }
 });
 
-// Liveness check
+// Liveness check (no DB dependency)
 router.get('/live', (req: Request, res: Response) => {
   res.json({
     live: true,

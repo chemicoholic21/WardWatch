@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { config } from './config/environment.js';
-import { getElasticsearchClient } from './config/elasticsearch.js';
+import { getDb } from './config/mongodb.js';
 
 // Import routes
 import complaintsRouter from './api/routes/complaints.js';
@@ -106,35 +106,37 @@ app.use((req, res) => {
 
 // Start server
 async function startServer() {
-  let esConnected = false;
-  let esVersion = 'N/A';
+  let dbConnected = false;
+  let dbName = 'N/A';
 
-  // Try to connect to Elasticsearch (optional)
+  // Try to connect to MongoDB (optional — server still starts so the
+  // standalone TrustLens /analyze endpoint stays usable even offline).
   try {
-    const esClient = getElasticsearchClient();
-    const esInfo = await esClient.info();
-    esConnected = true;
-    esVersion = esInfo.version.number;
-    console.log(`✓ Connected to Elasticsearch: ${esInfo.name} (${esVersion})`);
+    const db = await getDb();
+    await db.command({ ping: 1 });
+    dbConnected = true;
+    dbName = db.databaseName;
+    console.log(`✓ Connected to MongoDB: ${dbName}`);
   } catch (error: any) {
-    console.warn(`⚠ Elasticsearch not available: ${error.message}`);
-    console.warn('  Server will start but ES-dependent endpoints will fail.');
+    console.warn(`⚠ MongoDB not available: ${error.message}`);
+    console.warn('  Server will start but DB-dependent endpoints will fail.');
     console.warn('  TrustLens /analyze endpoint will still work for scam detection.');
   }
 
   app.listen(config.port, () => {
+    const dbLine = dbConnected ? `Connected (${dbName})` : 'Not Connected (limited mode)';
     console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
-║   🏛️  GhostOffice API Server                                  ║
+║   🏛️  WardWatch API Server                                    ║
 ║   Civic Observability & Accountability Intelligence Platform ║
 ║                                                               ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                               ║
-║   🌐 Server:     http://localhost:${config.port}                    ║
-║   📊 Mode:       ${config.nodeEnv.padEnd(11)}                            ║
-║   🔍 Elastic:    ${esConnected ? 'Connected (' + esVersion + ')' : 'Not Connected (limited mode)'}${esConnected ? ''.padEnd(Math.max(0, 16 - esVersion.length)) : ''}║
-║   🤖 Bedrock:    ${config.features.enableBedrock ? 'Enabled ' : 'Disabled'}                                   ║
+║   🌐 Server:     http://localhost:${config.port}
+║   📊 Mode:       ${config.nodeEnv}
+║   🍃 MongoDB:    ${dbLine}
+║   🤖 Bedrock:    ${config.features.enableBedrock ? 'Enabled' : 'Disabled'}
 ║                                                               ║
 ║   📋 Endpoints:                                               ║
 ║      • /api/complaints      - Civic complaints                ║
